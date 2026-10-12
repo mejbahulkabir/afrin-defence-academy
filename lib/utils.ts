@@ -32,6 +32,10 @@ export function formatTimestamp(timestamp: any, onlyDate?: boolean) {
   }
 }
 
+export function formatDate(timestamp: any){
+  return formatTimestamp(timestamp, true);
+}
+
 
 export async function copyTextToClipboard(text: string): Promise<boolean> {
   if (!text) return false;
