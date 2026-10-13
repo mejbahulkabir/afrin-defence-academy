@@ -1,96 +1,102 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import {
-    LayoutDashboard,
-    Settings,
-    BookOpen,
-    ScrollText,
-    Users,
-    Quote,
-    PenSquare,
-    Sparkles,
-    BarChart3,
-    Image as ImageIcon,
-    GalleryHorizontal,
-    Mail,
-    ClipboardList,
-    LogOut,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Shield } from "lucide-react";
 
-interface NavItem {
-    to: string;
-    label: string;
-    Icon: LucideIcon;
-    end?: boolean;
-}
-
-const NAV: NavItem[] = [
-    { to: "/dashboard", label: "Dashboard", Icon: LayoutDashboard, end: true },
-    { to: "/dashboard/site", label: "Site Settings", Icon: Settings },
-    { to: "/dashboard/banners", label: "Banners", Icon: ImageIcon },
-    { to: "/dashboard/gallery", label: "Gallery Images", Icon: GalleryHorizontal },
-    { to: "/dashboard/courses", label: "Courses", Icon: BookOpen },
-    { to: "/dashboard/exams", label: "Defence Exams", Icon: ScrollText },
-    { to: "/dashboard/faculty", label: "Faculty", Icon: Users },
-    { to: "/dashboard/testimonials", label: "Testimonials", Icon: Quote },
-    { to: "/dashboard/blog", label: "Blog", Icon: PenSquare },
-    { to: "/dashboard/why-us", label: "Why Us", Icon: Sparkles },
-    { to: "/dashboard/stats", label: "Stats", Icon: BarChart3 },
-    { to: "/dashboard/submissions/contact", label: "Contact Inbox", Icon: Mail },
-    { to: "/dashboard/submissions/admission", label: "Applications", Icon: ClipboardList },
-];
+import { cn } from "@/lib/utils";
+import { SITE } from "@/constants/site";
+import { ThemeToggle } from "./theme-toggle";
+import { PLATFORM_NAV } from "./platform-navigation";
+import { LogoutButton } from "../platform/logout-button";
 
 export function PlatformSidebar() {
-    const pathname = usePathname();
-    const router = useRouter();
+  const pathname = usePathname();
 
-    return (
-        <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-white md:flex">
-            <div className="px-5 py-4">
-                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                    Afrin Defence
-                </div>
-                <div className="mt-0.5 text-base font-semibold text-slate-900">
-                    Admin Panel
-                </div>
-            </div>
+  return (
+    <aside className="hidden h-dvh w-64 shrink-0 flex-col border-r border-border bg-background md:flex">
+      {/* Brand */}
+      <div className="border-b border-border px-5 py-5">
+        <Link href="/dashboard" className="flex items-center gap-3">
+          <div className="bg-gradient-ocean flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-elegant">
+            <Shield className="h-5 w-5 text-white" />
+          </div>
 
-            <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-2">
-                {NAV.map(({ to, label, Icon, end }) => {
-                    const isActive = end
-                        ? pathname === to
-                        : pathname === to || pathname.startsWith(`${to}/`);
+          <div className="min-w-0 leading-tight">
+            <p className="truncate text-sm font-semibold tracking-tight text-foreground">
+              {SITE.name}
+            </p>
+            <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              Management Console
+            </p>
+          </div>
+        </Link>
+      </div>
 
-                    return (
-                        <Link
-                            key={to}
-                            href={to}
-                            aria-current={isActive ? "page" : undefined}
-                            className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors ${isActive
-                                    ? "bg-slate-900 text-white"
-                                    : "text-slate-700 hover:bg-slate-100"
-                                }`}
-                        >
-                            <Icon className="h-4 w-4" />
-                            <span>{label}</span>
-                        </Link>
-                    );
-                })}
-            </nav>
+      {/* Navigation */}
+      <nav
+        aria-label="Main navigation"
+        className="flex-1 space-y-1 overflow-y-auto px-3 py-4"
+      >
+        <p className="mb-3 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Workspace
+        </p>
 
-            <div className="border-t border-slate-100 p-2">
-                <button
-                    type="button"
-                    onClick={() => router.replace("/login")}
-                    className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
-                >
-                    <LogOut className="h-4 w-4" />
-                    Sign out
-                </button>
-            </div>
-        </aside>
-    );
+        {PLATFORM_NAV.map(({ to, label, Icon, end }) => {
+          const isActive = end
+            ? pathname === to
+            : pathname === to || pathname.startsWith(`${to}/`);
+
+          return (
+            <Link
+              key={to}
+              href={to}
+              aria-current={isActive ? "page" : undefined}
+              className={cn(
+                "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium",
+                "transition-colors duration-200",
+                isActive
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+              )}
+            >
+              {isActive && (
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-y-2 left-0 w-1 rounded-full bg-[var(--navy-deep)]"
+                />
+              )}
+
+              <Icon
+                aria-hidden="true"
+                className={cn(
+                  "h-[18px] w-[18px] shrink-0 transition-colors",
+                  isActive
+                    ? "text-accent-foreground"
+                    : "text-muted-foreground group-hover:text-foreground",
+                )}
+              />
+
+              <span className="truncate">{label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Footer actions */}
+      <div className="space-y-2 border-t border-border p-3">
+        <div className="flex items-center justify-between rounded-lg px-3 py-2">
+          <span className="text-sm font-medium text-foreground">
+            Appearance
+          </span>
+          <ThemeToggle />
+        </div>
+
+        <LogoutButton
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+          iconClassName="h-[18px] w-[18px]"
+        />
+      </div>
+    </aside>
+  );
 }

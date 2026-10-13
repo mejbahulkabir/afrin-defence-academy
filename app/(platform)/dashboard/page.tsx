@@ -1,81 +1,152 @@
 import Link from "next/link";
-import { Card, CardBody } from "../_components/ui/card";
+import {
+  ArrowUpRight,
+  BookOpen,
+  ClipboardList,
+  Image as ImageIcon,
+  Mail,
+  PenSquare,
+  Quote,
+  ScrollText,
+  Users,
+} from "lucide-react";
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { PageHeader } from "@/components/platform/page-header";
+
+const tiles = [
+  { label: "Courses", value: 10, to: "/dashboard/courses", Icon: BookOpen },
+  { label: "Defence Exams", value: 3, to: "/dashboard/exams", Icon: ScrollText },
+  { label: "Faculty", value: 5, to: "/dashboard/faculty", Icon: Users },
+  { label: "Testimonials", value: 44, to: "/dashboard/testimonials", Icon: Quote },
+  { label: "Blog Posts", value: 22, to: "/dashboard/blog", Icon: PenSquare },
+  { label: "Gallery Images", value: 0, to: "/dashboard/gallery", Icon: ImageIcon },
+  {
+    label: "Contact Inbox",
+    value: 2,
+    to: "/dashboard/submissions/contact",
+    Icon: Mail,
+  },
+  {
+    label: "Applications",
+    value: 12,
+    to: "/dashboard/submissions/admission",
+    Icon: ClipboardList,
+  },
+];
 
 export default function Dashboard() {
-  
-  const tiles = [
-    { label: "Courses", value: 10, to: "/courses" },
-    { label: "Defence Exams", value: 3, to: "/exams" },
-    { label: "Faculty", value: 5, to: "/faculty" },
-    { label: "Testimonials", value: 44, to: "/testimonials" },
-    { label: "Blog Posts", value: 22, to: "/blog" },
-    { label: "Contact Inbox", value: 2, to: "/submissions/contact" },
-    { label: "Applications", value: 12, to: "/submissions/admission" },
-  ];
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Dashboard</h1>
-        <p className="mt-1 text-sm text-slate-600">Manage all dynamic content for afrindefenceacademy.in.</p>
-      </div>
+    <div className="space-y-8">
+      {/* Page heading */}
+      <PageHeader
+        title="Dashboard"
+        description="Manage all dynamic content for afrindefenceacademy.in."
+      />
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {tiles.map((t) => (
-          <Link key={t.label} href={t.to}>
-            <Card className="transition hover:border-slate-300 hover:shadow">
-              <CardBody>
-                <div className="text-xs font-medium uppercase tracking-wide text-slate-500">{t.label}</div>
-                <div className="mt-1 text-3xl font-semibold text-slate-900">{t.value ?? "—"}</div>
-              </CardBody>
+      {/* Overview stats */}
+      <section
+        aria-label="Content overview"
+        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+      >
+        {tiles.map(({ label, value, to, Icon }) => (
+          <Link
+            key={label}
+            href={to}
+            className="group rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            <Card className="h-full transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {label}
+                  </span>
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                </div>
+
+                <div className="mt-4 flex items-end justify-between">
+                  <p className="text-3xl font-semibold tracking-tight text-foreground">
+                    {value ?? "—"}
+                  </p>
+                  <ArrowUpRight className="mb-1 h-4 w-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                </div>
+              </CardContent>
             </Card>
           </Link>
         ))}
-      </div>
+      </section>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      {/* Recent activity */}
+      <section className="grid gap-4 xl:grid-cols-2">
         <Card>
-          <CardBody>
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-base font-semibold text-slate-900">Recent contact messages</h2>
-              <Link href="/submissions/contact" className="text-xs text-slate-600 hover:text-slate-900">View all →</Link>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <div className="space-y-1.5">
+              <CardTitle className="text-base">Recent contact messages</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Latest enquiries from your website.
+              </p>
             </div>
-            <ul className="space-y-2">
-              {/* {(contacts.data ?? []).slice(0, 5).map((s) => (
-                <li key={s.id} className="flex items-center justify-between text-sm">
-                  <div>
-                    <div className="font-medium text-slate-900">{s.name}</div>
-                    <div className="text-xs text-slate-500">{s.subject ?? "—"} · {formatDate(s.createdAt)}</div>
-                  </div>
-                  {s.handled ? <span className="text-xs text-emerald-700">Handled</span> : <span className="text-xs text-amber-600">New</span>}
-                </li>
-              ))}
-              {!contacts.data?.length ? <li className="text-sm text-slate-500">No messages yet.</li> : null} */}
-            </ul>
-          </CardBody>
+
+            <Link
+              href="/dashboard/submissions/contact"
+              className="inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+            >
+              View all
+              <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          </CardHeader>
+
+          <CardContent>
+            <div className="flex min-h-28 flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 px-4 py-6 text-center">
+              <Mail className="mb-2 h-6 w-6 text-muted-foreground" />
+              <p className="text-sm font-medium text-foreground">
+                No messages to display
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                New contact enquiries will appear here.
+              </p>
+            </div>
+          </CardContent>
         </Card>
 
         <Card>
-          <CardBody>
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-base font-semibold text-slate-900">Recent applications</h2>
-              <Link href="/submissions/admission" className="text-xs text-slate-600 hover:text-slate-900">View all →</Link>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <div className="space-y-1.5">
+              <CardTitle className="text-base">Recent applications</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Latest admission applications.
+              </p>
             </div>
-            <ul className="space-y-2">
-              {/* {(admissions.data ?? []).slice(0, 5).map((s) => (
-                <li key={s.id} className="flex items-center justify-between text-sm">
-                  <div>
-                    <div className="font-medium text-slate-900">{s.fullName}</div>
-                    <div className="text-xs text-slate-500">{s.applicationId} · {formatDate(s.createdAt)}</div>
-                  </div>
-                  {s.handled ? <span className="text-xs text-emerald-700">Handled</span> : <span className="text-xs text-amber-600">New</span>}
-                </li>
-              ))}
-              {!admissions.data?.length ? <li className="text-sm text-slate-500">No applications yet.</li> : null} */}
-            </ul>
-          </CardBody>
+
+            <Link
+              href="/dashboard/submissions/admission"
+              className="inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+            >
+              View all
+              <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          </CardHeader>
+
+          <CardContent>
+            <div className="flex min-h-28 flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 px-4 py-6 text-center">
+              <ClipboardList className="mb-2 h-6 w-6 text-muted-foreground" />
+              <p className="text-sm font-medium text-foreground">
+                No applications to display
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                New admission applications will appear here.
+              </p>
+            </div>
+          </CardContent>
         </Card>
-      </div>
+      </section>
     </div>
   );
 }
