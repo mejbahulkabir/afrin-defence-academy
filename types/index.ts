@@ -59,3 +59,14 @@ export interface Stat {
   suffix?: string;
   label: string;
 }
+
+export * from "./why-us";
+export * from "./stats";
+export * from "./testimonial";
+export * from "./faculty";
+export * from "./exam";
+export * from "./course";
+export * from "./gallery";
+export * from "./upload";
+export * from "./banner";
+export * from "./contact";

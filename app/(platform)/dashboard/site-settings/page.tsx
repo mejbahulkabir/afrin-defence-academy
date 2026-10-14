@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, type ReactNode } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -18,88 +19,89 @@ import {
 import { PageHeader } from "@/components/platform/page-header";
 
 import { toApiError } from "@/lib/api-error";
-import type { SiteSettings } from "@/types/site-settings";
 import {
-  settingsKeys,
-  siteSettingsQueryOptions,
-  updateSiteSettingsMutationOptions,
+  useSiteSettingsQuery,
+  useUpdateSiteSettingsMutation,
 } from "@/queries/settings.queries";
+import {
+  siteSettingsSchema,
+  type SiteSettingsInput,
+} from "@/validations/site-settings.schema";
 
-const EMPTY: SiteSettings = {
+const defaultValues: SiteSettingsInput = {
   name: "",
-  socials: {},
+  shortName: "",
+  tagline: "",
+  description: "",
+  phone: "",
+  phoneRaw: "",
+  email: "",
+  whatsapp: "",
+  address: "",
+  mapsEmbed: "",
+  socials: {
+    facebook: "",
+    instagram: "",
+    youtube: "",
+    twitter: "",
+    linkedin: "",
+  },
 };
 
 export default function SiteSettingsPage() {
-  const queryClient = useQueryClient();
-
   const {
     data,
     isPending,
     isError,
     error,
     refetch,
-  } = useQuery(siteSettingsQueryOptions());
+  } = useSiteSettingsQuery();
 
-  const [values, setValues] = useState<SiteSettings>(EMPTY);
-
-  useEffect(() => {
-    if (data) {
-      setValues({
-        ...EMPTY,
-        ...data,
-        socials: {
-          ...EMPTY.socials,
-          ...data.socials,
-        },
-      });
-    }
-  }, [data]);
-
-  const set =
-    (key: keyof SiteSettings) =>
-    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const value = event.target.value;
-
-      setValues((current) => ({
-        ...current,
-        [key]: value,
-      }));
-    };
-
-  const setSocial =
-    (key: keyof NonNullable<SiteSettings["socials"]>) =>
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value;
-
-      setValues((current) => ({
-        ...current,
-        socials: {
-          ...current.socials,
-          [key]: value,
-        },
-      }));
-    };
-
-  const updateMutation = useMutation({
-    ...updateSiteSettingsMutationOptions(),
-
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: settingsKeys.site(),
-      });
-
+  const updateMutation = useUpdateSiteSettingsMutation({
+    onSuccess: () => {
       toast.success("Site settings saved successfully.");
     },
-
     onError: (error: unknown) => {
       toast.error(toApiError(error).message);
     },
   });
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<SiteSettingsInput>({
+    resolver: zodResolver(siteSettingsSchema),
+    defaultValues,
+    mode: "onTouched",
+  });
 
+  useEffect(() => {
+    if (data) {
+      reset({
+        name: data.name ?? "",
+        shortName: data.shortName ?? "",
+        tagline: data.tagline ?? "",
+        description: data.description ?? "",
+        phone: data.phone ?? "",
+        phoneRaw: data.phoneRaw ?? "",
+        email: data.email ?? "",
+        whatsapp: data.whatsapp ?? "",
+        address: data.address ?? "",
+        mapsEmbed: data.mapsEmbed ?? "",
+        socials: {
+          facebook: data.socials?.facebook ?? "",
+          instagram: data.socials?.instagram ?? "",
+          youtube: data.socials?.youtube ?? "",
+          twitter: data.socials?.twitter ?? "",
+          linkedin: data.socials?.linkedin ?? "",
+        },
+      });
+    }
+  }, [data, reset]);
+
+  const onSubmit = (values: SiteSettingsInput) => {
     updateMutation.mutate(values);
   };
 
@@ -156,7 +158,7 @@ export default function SiteSettingsPage() {
         description="Manage your brand identity, contact details, and social links shown across your website."
       />
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {/* Brand */}
         <Card>
           <CardHeader>
@@ -164,37 +166,36 @@ export default function SiteSettingsPage() {
           </CardHeader>
 
           <CardContent className="grid gap-5 md:grid-cols-2">
-            <Field label="Name" required>
+            <Field label="Name" required error={errors.name?.message}>
               <Input
-                value={values.name}
-                onChange={set("name")}
-                required
+                {...register("name")}
                 placeholder="Enter site name"
+                aria-invalid={!!errors.name}
               />
             </Field>
 
-            <Field label="Short name">
+            <Field label="Short name" error={errors.shortName?.message}>
               <Input
-                value={values.shortName ?? ""}
-                onChange={set("shortName")}
+                {...register("shortName")}
                 placeholder="Enter short name"
+                aria-invalid={!!errors.shortName}
               />
             </Field>
 
-            <Field label="Tagline" wide>
+            <Field label="Tagline" wide error={errors.tagline?.message}>
               <Input
-                value={values.tagline ?? ""}
-                onChange={set("tagline")}
+                {...register("tagline")}
                 placeholder="Enter site tagline"
+                aria-invalid={!!errors.tagline}
               />
             </Field>
 
-            <Field label="Description" wide>
+            <Field label="Description" wide error={errors.description?.message}>
               <Textarea
                 rows={4}
-                value={values.description ?? ""}
-                onChange={set("description")}
+                {...register("description")}
                 placeholder="Describe your institution"
+                aria-invalid={!!errors.description}
               />
             </Field>
           </CardContent>
@@ -207,54 +208,54 @@ export default function SiteSettingsPage() {
           </CardHeader>
 
           <CardContent className="grid gap-5 md:grid-cols-2">
-            <Field label="Phone (display)">
+            <Field label="Phone (display)" error={errors.phone?.message}>
               <Input
-                value={values.phone ?? ""}
-                onChange={set("phone")}
+                {...register("phone")}
                 placeholder="+91 98765 43210"
+                aria-invalid={!!errors.phone}
               />
             </Field>
 
-            <Field label="Phone (tel: link)">
+            <Field label="Phone (tel: link)" error={errors.phoneRaw?.message}>
               <Input
-                value={values.phoneRaw ?? ""}
-                onChange={set("phoneRaw")}
+                {...register("phoneRaw")}
                 placeholder="+919876543210"
+                aria-invalid={!!errors.phoneRaw}
               />
             </Field>
 
-            <Field label="Email">
+            <Field label="Email" error={errors.email?.message}>
               <Input
                 type="email"
-                value={values.email ?? ""}
-                onChange={set("email")}
+                {...register("email")}
                 placeholder="contact@example.com"
+                aria-invalid={!!errors.email}
               />
             </Field>
 
-            <Field label="WhatsApp number">
+            <Field label="WhatsApp number" error={errors.whatsapp?.message}>
               <Input
-                value={values.whatsapp ?? ""}
-                onChange={set("whatsapp")}
+                {...register("whatsapp")}
                 placeholder="Enter WhatsApp number"
+                aria-invalid={!!errors.whatsapp}
               />
             </Field>
 
-            <Field label="Address" wide>
+            <Field label="Address" wide error={errors.address?.message}>
               <Textarea
                 rows={3}
-                value={values.address ?? ""}
-                onChange={set("address")}
+                {...register("address")}
                 placeholder="Enter institution address"
+                aria-invalid={!!errors.address}
               />
             </Field>
 
-            <Field label="Google Maps embed URL" wide>
+            <Field label="Google Maps embed URL" wide error={errors.mapsEmbed?.message}>
               <Textarea
                 rows={2}
-                value={values.mapsEmbed ?? ""}
-                onChange={set("mapsEmbed")}
+                {...register("mapsEmbed")}
                 placeholder="Enter Google Maps embed URL"
+                aria-invalid={!!errors.mapsEmbed}
               />
             </Field>
           </CardContent>
@@ -267,48 +268,48 @@ export default function SiteSettingsPage() {
           </CardHeader>
 
           <CardContent className="grid gap-5 md:grid-cols-2">
-            <Field label="Facebook">
+            <Field label="Facebook" error={errors.socials?.facebook?.message}>
               <Input
                 type="url"
-                value={values.socials?.facebook ?? ""}
-                onChange={setSocial("facebook")}
+                {...register("socials.facebook")}
                 placeholder="https://facebook.com/..."
+                aria-invalid={!!errors.socials?.facebook}
               />
             </Field>
 
-            <Field label="Instagram">
+            <Field label="Instagram" error={errors.socials?.instagram?.message}>
               <Input
                 type="url"
-                value={values.socials?.instagram ?? ""}
-                onChange={setSocial("instagram")}
+                {...register("socials.instagram")}
                 placeholder="https://instagram.com/..."
+                aria-invalid={!!errors.socials?.instagram}
               />
             </Field>
 
-            <Field label="YouTube">
+            <Field label="YouTube" error={errors.socials?.youtube?.message}>
               <Input
                 type="url"
-                value={values.socials?.youtube ?? ""}
-                onChange={setSocial("youtube")}
+                {...register("socials.youtube")}
                 placeholder="https://youtube.com/..."
+                aria-invalid={!!errors.socials?.youtube}
               />
             </Field>
 
-            <Field label="Twitter / X">
+            <Field label="Twitter / X" error={errors.socials?.twitter?.message}>
               <Input
                 type="url"
-                value={values.socials?.twitter ?? ""}
-                onChange={setSocial("twitter")}
+                {...register("socials.twitter")}
                 placeholder="https://x.com/..."
+                aria-invalid={!!errors.socials?.twitter}
               />
             </Field>
 
-            <Field label="LinkedIn">
+            <Field label="LinkedIn" error={errors.socials?.linkedin?.message}>
               <Input
                 type="url"
-                value={values.socials?.linkedin ?? ""}
-                onChange={setSocial("linkedin")}
+                {...register("socials.linkedin")}
                 placeholder="https://linkedin.com/..."
+                aria-invalid={!!errors.socials?.linkedin}
               />
             </Field>
           </CardContent>
@@ -316,7 +317,7 @@ export default function SiteSettingsPage() {
 
         {/* Actions */}
         <div className="flex justify-end">
-          <Button type="submit" disabled={updateMutation.isPending}>
+          <Button type="submit" disabled={updateMutation.isPending || isSubmitting}>
             {updateMutation.isPending ? "Saving..." : "Save changes"}
           </Button>
         </div>
@@ -330,20 +331,24 @@ function Field({
   children,
   required,
   wide,
+  error,
 }: {
   label: string;
   children: ReactNode;
   required?: boolean;
   wide?: boolean;
+  error?: string;
 }) {
   return (
     <div className={`min-w-0 space-y-2 ${wide ? "md:col-span-2" : ""}`}>
-      <Label>
+      <Label className={error ? "text-destructive" : ""}>
         {label}
         {required && <span className="text-destructive"> *</span>}
       </Label>
 
       {children}
+
+      {error && <p className="text-xs font-medium text-destructive">{error}</p>}
     </div>
   );
 }

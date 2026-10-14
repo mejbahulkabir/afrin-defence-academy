@@ -11,7 +11,7 @@ export const siteSettingsSchema = z.object({
 
   phone: optionalString,
   phoneRaw: optionalString,
-  email: z.union([z.email(), z.literal("")]).optional(),
+  email: z.union([z.email("Please enter a valid email address"), z.literal("")]).optional(),
   whatsapp: optionalString,
   address: optionalString,
   mapsEmbed: optionalString,
