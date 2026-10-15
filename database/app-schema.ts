@@ -110,6 +110,7 @@ export const blogPosts = mysqlTable("blog_posts", {
   id: int("id").autoincrement().primaryKey(),
   slug: varchar("slug", { length: 255 }).notNull().unique(),
   title: varchar("title", { length: 255 }).notNull(),
+  image: text("image"),
   excerpt: text("excerpt"),
   content: text("content"),
   category: varchar("category", { length: 255 }),

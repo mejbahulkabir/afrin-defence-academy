@@ -49,11 +49,20 @@ export function BlogCard({ post }: { post: BlogPost }) {
   return (
     <motion.article variants={fadeUp} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:-translate-y-1 hover:shadow-elegant">
       <div className="bg-gradient-ocean relative aspect-[16/10] overflow-hidden">
-        <div className="absolute inset-0 bg-grid-pattern opacity-30" />
+        {post.image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={post.image}
+            alt={post.title}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-grid-pattern opacity-30" />
+        )}
         <div className="absolute inset-0 flex items-end p-5"><span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white backdrop-blur">{post.category}</span></div>
       </div>
       <div className="flex flex-1 flex-col p-6">
-        <div className="flex items-center gap-3 text-xs text-muted-foreground"><Clock className="h-3.5 w-3.5" /> {post.readingTime}<span>· {new Date(post.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span></div>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground"><Clock className="h-3.5 w-3.5" /> {post.readingTime}{post.date && (<span>· {new Date(post.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>)}</div>
         <h3 className="font-display mt-3 text-lg font-semibold leading-snug text-foreground transition-colors group-hover:text-accent">{post.title}</h3>
         <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{post.excerpt}</p>
         <Link href={`/blog/${post.slug}`} className="mt-auto inline-flex items-center gap-1 pt-4 text-sm font-semibold text-accent hover:text-[var(--navy)]">Read article <ArrowUpRight className="h-4 w-4" /></Link>

@@ -17,9 +17,13 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { authClient } from "@/lib/authClient";
+import { useSiteSettingsQuery } from "@/queries/settings.queries";
 
 export default function LoginPage() {
     const router = useRouter();
+    const { data: settings } = useSiteSettingsQuery();
+
+    const siteName = settings?.name || SITE.name;
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -62,8 +66,11 @@ export default function LoginPage() {
                         <Shield className="h-6 w-6 text-white" />
                     </div>
 
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                        {SITE.name}
+                    <p
+                        className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground"
+                        suppressHydrationWarning
+                    >
+                        {siteName}
                     </p>
                     <h1 className="mt-2 text-2xl font-semibold tracking-tight">
                         Welcome back

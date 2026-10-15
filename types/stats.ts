@@ -1,7 +1,13 @@
-export interface StatItem {
-  id: number;
+export interface Stat {
+  id?: number;
   label: string;
   value: number;
+  suffix?: string | null;
+  order?: number;
+}
+
+export interface StatItem extends Stat {
+  id: number;
   suffix: string;
   order: number;
   createdAt: string | Date;

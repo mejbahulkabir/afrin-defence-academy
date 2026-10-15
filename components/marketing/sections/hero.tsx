@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
 
+import { useBannersQuery } from "@/queries/banners.queries";
+import { useStatsQuery } from "@/queries/stats.queries";
+
 const DEFAULTS = {
   image: "/assets/hero-cadets.jpg",
   eyebrow: "India's most decorated defence academy",
@@ -20,17 +23,33 @@ const DEFAULTS = {
 };
 
 export function Hero() {
+  const { data: banners } = useBannersQuery("hero");
+  const { data: stats } = useStatsQuery();
 
+  const activeBanner = banners?.find((b) => b.active) ?? banners?.[0];
 
-  const image = DEFAULTS.image;
-  const eyebrow = DEFAULTS.eyebrow;
-  const title = DEFAULTS.title;
-  const titleHighlight = DEFAULTS.titleHighlight;
-  const subtitle = DEFAULTS.subtitle;
-  const ctaLabel = DEFAULTS.ctaLabel;
-  const ctaHref =  DEFAULTS.ctaHref;
-  const secondaryLabel = DEFAULTS.secondaryLabel;
-  const secondaryHref = DEFAULTS.secondaryHref;
+  const image = activeBanner?.image || DEFAULTS.image;
+  const eyebrow = activeBanner?.eyebrow || DEFAULTS.eyebrow;
+  const title = activeBanner?.title || DEFAULTS.title;
+  const titleHighlight = activeBanner?.titleHighlight ?? DEFAULTS.titleHighlight;
+  const subtitle = activeBanner?.subtitle || DEFAULTS.subtitle;
+  const ctaLabel = activeBanner?.ctaLabel || DEFAULTS.ctaLabel;
+  const ctaHref = activeBanner?.ctaHref || DEFAULTS.ctaHref;
+  const secondaryLabel = activeBanner?.secondaryLabel ?? DEFAULTS.secondaryLabel;
+  const secondaryHref = activeBanner?.secondaryHref ?? DEFAULTS.secondaryHref;
+
+  const highlights =
+    stats && stats.length >= 3
+      ? stats
+          .slice()
+          .sort((a, b) => a.order - b.order)
+          .slice(0, 3)
+          .map((s) => [`${s.value.toLocaleString()}${s.suffix}`, s.label])
+      : [
+          ["3,200+", "Officers commissioned"],
+          ["97%", "SSB recommendation"],
+          ["18+", "Years of training"],
+        ];
 
   return (
     <section className="relative isolate overflow-hidden">
@@ -40,6 +59,7 @@ export function Hero() {
           alt="Defence academy banner"
           width={1920}
           height={1080}
+          unoptimized={image.startsWith("/storage") || image.startsWith("http")}
           fetchPriority="high"
           className="h-full w-full object-cover"
         />
@@ -90,7 +110,11 @@ export function Hero() {
               transition={{ duration: 0.7, delay: 0.26 }}
               className="mt-9 flex flex-wrap items-center gap-3"
             >
-              <Button asChild size="lg" className="bg-white text-[var(--navy-deep)] hover:bg-white/90">
+              <Button
+                asChild
+                size="lg"
+                className="bg-white text-[var(--navy-deep)] hover:bg-white/90"
+              >
                 <a href={ctaHref}>
                   {ctaLabel} <ArrowRight className="ml-2 h-4 w-4" />
                 </a>
@@ -115,14 +139,14 @@ export function Hero() {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="mt-12 grid max-w-lg grid-cols-3 gap-6 border-t border-white/10 pt-6"
             >
-              {[
-                ["3,200+", "Officers commissioned"],
-                ["97%", "SSB recommendation"],
-                ["18+", "Years of training"],
-              ].map(([v, l]) => (
+              {highlights.map(([v, l]) => (
                 <div key={l}>
-                  <div className="font-display text-2xl font-semibold text-white md:text-3xl">{v}</div>
-                  <div className="mt-1 text-[11px] uppercase tracking-[0.16em] text-white/60">{l}</div>
+                  <div className="font-display text-2xl font-semibold text-white md:text-3xl">
+                    {v}
+                  </div>
+                  <div className="mt-1 text-[11px] uppercase tracking-[0.16em] text-white/60">
+                    {l}
+                  </div>
                 </div>
               ))}
             </motion.div>
@@ -138,9 +162,12 @@ export function Hero() {
               <div className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--teal-soft)]">
                 Batch 2026 · Admissions Open
               </div>
-              <h3 className="font-display mt-3 text-2xl font-semibold">Foundation, Crash & SSB programs</h3>
+              <h3 className="font-display mt-3 text-2xl font-semibold">
+                Foundation, Crash & SSB programs
+              </h3>
               <p className="mt-2 text-sm text-white/75">
-                Choose from 6 specialised tracks. Limited to 30 cadets per batch.
+                Choose from 6 specialised tracks. Limited to 30 cadets per
+                batch.
               </p>
               <ul className="mt-5 space-y-3 text-sm">
                 {[

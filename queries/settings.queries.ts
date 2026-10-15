@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   mutationOptions,
   queryOptions,
@@ -28,7 +29,22 @@ export const updateSiteSettingsMutationOptions = () =>
   });
 
 export const useSiteSettingsQuery = () => {
-  return useQuery(siteSettingsQueryOptions());
+  const query = useQuery(siteSettingsQueryOptions());
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  return {
+    ...query,
+    data: mounted ? query.data : undefined,
+    isPending: !mounted || query.isPending,
+    isLoading: !mounted || query.isLoading,
+    isError: mounted ? query.isError : false,
+    error: mounted ? query.error : null,
+    isMounted: mounted,
+  };
 };
 
 export const useUpdateSiteSettingsMutation = (

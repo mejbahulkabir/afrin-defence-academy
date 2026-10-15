@@ -9,14 +9,6 @@ import { patchSiteSettingsSchema } from "@/validations/site-settings.schema";
 
 export async function GET(request: NextRequest) {
     try {
-        const session = await auth.api.getSession({
-            headers: request.headers,
-        });
-
-        if (!session?.user) {
-            return ApiResponse.unauthorized();
-        }
-
         const [settingsData] = await db
             .select()
             .from(siteSettings)

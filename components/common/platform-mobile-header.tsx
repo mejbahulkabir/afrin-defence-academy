@@ -10,10 +10,14 @@ import { SITE } from "@/constants/site";
 import { ThemeToggle } from "./theme-toggle";
 import { PLATFORM_NAV } from "./platform-navigation";
 import { LogoutButton } from "../platform/logout-button";
+import { useSiteSettingsQuery } from "@/queries/settings.queries";
 
 export function PlatformMobileHeader() {
   const pathname = usePathname();
+  const { data: settings } = useSiteSettingsQuery();
   const [open, setOpen] = useState(false);
+
+  const siteName = settings?.name || SITE.name;
 
   return (
     <>
@@ -25,8 +29,11 @@ export function PlatformMobileHeader() {
           </span>
 
           <span className="min-w-0">
-            <span className="block truncate text-sm font-semibold text-foreground">
-              {SITE.name}
+            <span
+              className="block truncate text-sm font-semibold text-foreground"
+              suppressHydrationWarning
+            >
+              {siteName}
             </span>
             <span className="block text-[10px] uppercase tracking-wider text-muted-foreground">
               Console

@@ -9,9 +9,13 @@ import { SITE } from "@/constants/site";
 import { ThemeToggle } from "./theme-toggle";
 import { PLATFORM_NAV } from "./platform-navigation";
 import { LogoutButton } from "../platform/logout-button";
+import { useSiteSettingsQuery } from "@/queries/settings.queries";
 
 export function PlatformSidebar() {
   const pathname = usePathname();
+  const { data: settings } = useSiteSettingsQuery();
+
+  const siteName = settings?.name || SITE.name;
 
   return (
     <aside className="hidden h-dvh w-64 shrink-0 flex-col border-r border-border bg-background md:flex">
@@ -23,8 +27,11 @@ export function PlatformSidebar() {
           </div>
 
           <div className="min-w-0 leading-tight">
-            <p className="truncate text-sm font-semibold tracking-tight text-foreground">
-              {SITE.name}
+            <p
+              className="truncate text-sm font-semibold tracking-tight text-foreground"
+              suppressHydrationWarning
+            >
+              {siteName}
             </p>
             <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
               Management Console
