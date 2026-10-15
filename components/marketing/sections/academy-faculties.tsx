@@ -5,14 +5,19 @@ import { motion } from "motion/react";
 import { stagger } from "@/components/animations/variants";
 import { useFacultyQuery } from "@/queries/faculty.queries";
 import { FacultyCard } from "../cards";
-import type { Faculty } from "@/types";
+import type { Faculty, FacultyItem } from "@/types";
 
-export default function AcademyFaculties() {
+export default function AcademyFaculties({
+  initialFaculty,
+}: {
+  initialFaculty?: FacultyItem[];
+}) {
   const { data: facultyData } = useFacultyQuery();
+  const currentFaculty = facultyData ?? initialFaculty;
 
   const list: Faculty[] = useMemo(() => {
-    if (facultyData && facultyData.length > 0) {
-      return facultyData
+    if (currentFaculty && currentFaculty.length > 0) {
+      return currentFaculty
         .slice()
         .sort((a, b) => a.order - b.order)
         .map((f) => ({

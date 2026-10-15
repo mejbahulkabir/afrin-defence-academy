@@ -3,13 +3,19 @@
 import { motion } from "framer-motion";
 import { useExamsQuery } from "@/queries/exams.queries";
 import { fadeUp, stagger } from "@/components/animations/variants";
+import type { ExamItem } from "@/types";
 
-export default function DefenceExams() {
+export default function DefenceExams({
+  initialExams,
+}: {
+  initialExams?: ExamItem[];
+}) {
   const { data: exams } = useExamsQuery();
+  const currentExams = exams ?? initialExams;
 
   const list =
-    exams && exams.length > 0
-      ? exams
+    currentExams && currentExams.length > 0
+      ? currentExams
           .slice()
           .sort((a, b) => a.order - b.order)
           .map((e) => ({

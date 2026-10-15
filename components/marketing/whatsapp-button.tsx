@@ -4,11 +4,18 @@ import { SITE } from "@/constants/site";
 import { useSiteSettingsQuery } from "@/queries/settings.queries";
 import { MessageCircle } from "lucide-react";
 
-export function WhatsAppButton() {
+import type { SiteSettings } from "@/types";
+
+export function WhatsAppButton({
+  initialSettings,
+}: {
+  initialSettings?: SiteSettings | null;
+} = {}) {
   const { data: settings } = useSiteSettingsQuery();
 
-  const name = settings?.name || SITE.name;
-  const rawWhatsapp = settings?.whatsapp || SITE.whatsapp || "";
+  const currentSettings = settings ?? initialSettings;
+  const name = currentSettings?.name || SITE.name;
+  const rawWhatsapp = currentSettings?.whatsapp || SITE.whatsapp || "";
   const cleanNumber = rawWhatsapp.replace(/[^0-9]/g, "");
 
   const href = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(

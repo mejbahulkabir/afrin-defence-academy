@@ -1,15 +1,8 @@
 import type { Metadata } from "next";
 import {
-  Award,
   BookOpen,
-  Calendar,
-  CheckCircle,
-  Clock,
   Compass,
   Home,
-  Mail,
-  MapPin,
-  Phone,
   Shield,
   Users,
 } from "lucide-react";
@@ -18,12 +11,22 @@ import { PageHeader } from "@/components/marketing/sections/page-header";
 import { CTASection } from "@/components/marketing/cta-section";
 import AdmissionForm from "@/components/marketing/sections/admission-form";
 import { AdmissionHelpline } from "@/components/marketing/sections/admission-helpline";
+import {
+  getBannersServer,
+  getSiteSettingsServer,
+} from "@/lib/server-data";
 
-export const metadata: Metadata = {
-  title: "Apply for Admission | Afrin Defence Academy",
-  description:
-    "Submit your online admission application for NDA, CDS, AFCAT, and SSB Interview batches at Afrin Defence Academy. Officer-led classroom & residential coaching.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettingsServer();
+  return {
+    title: `Apply for Admission (2025–2026 Batches) | ${settings.name}`,
+    description: `Submit your online admission application for NDA, CDS, AFCAT, and SSB Interview batches at ${settings.name}. Officer-led classroom & residential coaching.`,
+    openGraph: {
+      title: `Apply for Admission | ${settings.name}`,
+      description: `Join ${settings.name} for premier defence officer coaching. Online applications open.`,
+    },
+  };
+}
 
 const ADMISSION_BENEFITS = [
   {
@@ -52,7 +55,14 @@ const ADMISSION_BENEFITS = [
   },
 ];
 
-export default function AdmissionPage() {
+export const instant = false;
+
+export default async function AdmissionPage() {
+  const [settings, ctaBanners] = await Promise.all([
+    getSiteSettingsServer(),
+    getBannersServer("cta"),
+  ]);
+
   return (
     <>
       <PageHeader
@@ -96,7 +106,7 @@ export default function AdmissionPage() {
             </div>
 
             {/* Admission Helpline Contacts */}
-            <AdmissionHelpline />
+            <AdmissionHelpline initialSettings={settings} />
           </div>
 
           {/* Right Column: Admission Application Form */}
@@ -104,7 +114,7 @@ export default function AdmissionPage() {
         </div>
       </section>
 
-      <CTASection />
+      <CTASection initialSettings={settings} initialBanners={ctaBanners} />
     </>
   );
 }

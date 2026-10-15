@@ -18,13 +18,24 @@ const DEFAULTS = {
   ctaHref: "/admission",
 };
 
-export function CTASection() {
-  const { data: ctaBanners } = useBannersQuery("cta");
-  const { data: settings, isMounted } = useSiteSettingsQuery();
+import type { BannerItem, SiteSettings } from "@/types";
 
-  const activeCta = isMounted
-    ? ctaBanners?.find((b) => b.active) ?? ctaBanners?.[0]
-    : undefined;
+export function CTASection({
+  initialBanners,
+  initialSettings,
+  settings: propSettings,
+}: {
+  initialBanners?: BannerItem[];
+  initialSettings?: SiteSettings | null;
+  settings?: SiteSettings | null;
+} = {}) {
+  const { data: ctaBanners } = useBannersQuery("cta");
+  const { data: querySettings } = useSiteSettingsQuery();
+
+  const currentSettings = querySettings ?? initialSettings ?? propSettings;
+  const currentBanners = ctaBanners ?? initialBanners;
+
+  const activeCta = currentBanners?.find((b) => b.active) ?? currentBanners?.[0];
 
   const image = activeCta?.image || DEFAULTS.image;
   const eyebrow = activeCta?.eyebrow || DEFAULTS.eyebrow;
@@ -33,8 +44,9 @@ export function CTASection() {
   const ctaLabel = activeCta?.ctaLabel || DEFAULTS.ctaLabel;
   const ctaHref = activeCta?.ctaHref || DEFAULTS.ctaHref;
 
-  const phone = settings?.phone || SITE.phone;
-  const phoneRaw = settings?.phoneRaw || settings?.phone || SITE.phoneRaw;
+  const phone = currentSettings?.phone || SITE.phone;
+  const phoneRaw =
+    currentSettings?.phoneRaw || currentSettings?.phone || SITE.phoneRaw;
 
   return (
     <section className="relative overflow-hidden py-20 md:py-28">

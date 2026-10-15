@@ -7,18 +7,25 @@ import { CourseCard } from "@/components/marketing/cards";
 import { stagger } from "@/components/animations/variants";
 import { useCoursesQuery } from "@/queries/courses.queries";
 import Link from "next/link";
+import type { CourseItem } from "@/types";
 
-export function PopularCourses() {
+export function PopularCourses({
+  initialCourses,
+}: {
+  initialCourses?: CourseItem[];
+} = {}) {
   const { data: courses } = useCoursesQuery();
 
+  const currentCourses = courses ?? initialCourses;
+
   const list =
-    courses && courses.length > 0
-      ? courses
+    currentCourses && currentCourses.length > 0
+      ? currentCourses
           .slice()
           .sort((a, b) => a.order - b.order)
           .filter((c) => c.popular)
           .concat(
-            courses
+            currentCourses
               .slice()
               .sort((a, b) => a.order - b.order)
               .filter((c) => !c.popular)

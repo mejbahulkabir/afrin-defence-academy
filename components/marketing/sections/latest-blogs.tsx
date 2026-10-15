@@ -7,11 +7,17 @@ import { SectionHeading } from "../section-heading";
 import { stagger } from "@/components/animations/variants";
 import { BlogCard } from "../cards";
 import { useBlogPostsQuery } from "@/queries/blog.queries";
+import type { BlogPostItem } from "@/types";
 
-export default function LatestBlogs() {
+export default function LatestBlogs({
+  initialPosts,
+}: {
+  initialPosts?: BlogPostItem[];
+}) {
   const { data: posts } = useBlogPostsQuery();
+  const currentPosts = posts ?? initialPosts;
 
-  const published = posts?.filter((p) => p.published) ?? [];
+  const published = currentPosts?.filter((p) => p.published) ?? [];
 
   const list =
     published.length > 0

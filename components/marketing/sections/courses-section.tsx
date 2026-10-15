@@ -15,7 +15,7 @@ import {
 import { CourseCard } from "../cards";
 import { stagger, fadeUp } from "@/components/animations/variants";
 import { useCoursesQuery } from "@/queries/courses.queries";
-import type { Course } from "@/types";
+import type { Course, CourseItem } from "@/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,8 +23,13 @@ import { Badge } from "@/components/ui/badge";
 type ModeFilter = "All" | "Hybrid" | "Offline" | "Online";
 type LevelFilter = "All" | "Foundation" | "Intermediate" | "Advanced";
 
-export default function CoursesSection() {
+export default function CoursesSection({
+  initialCourses,
+}: {
+  initialCourses?: CourseItem[];
+}) {
   const { data: courses, isLoading } = useCoursesQuery();
+  const currentCourses = courses ?? initialCourses;
 
   const [search, setSearch] = useState("");
   const [selectedMode, setSelectedMode] = useState<ModeFilter>("All");
@@ -32,8 +37,8 @@ export default function CoursesSection() {
 
   // Transform courses strictly from API/database
   const allCourses: Course[] = useMemo(() => {
-    if (courses) {
-      return courses
+    if (currentCourses) {
+      return currentCourses
         .slice()
         .sort((a, b) => a.order - b.order)
         .map((c) => ({

@@ -5,13 +5,20 @@ import { CheckCircle2 } from "lucide-react";
 import { SectionHeading } from "@/components/marketing/section-heading";
 import { fadeUp, stagger } from "@/components/animations/variants";
 import { useWhyUsQuery } from "@/queries/why-us.queries";
+import type { WhyUsItem } from "@/types";
 
-export function WhyUs() {
+export function WhyUs({
+  initialWhyUs,
+}: {
+  initialWhyUs?: WhyUsItem[];
+} = {}) {
   const { data: whyUs } = useWhyUsQuery();
 
+  const currentWhyUs = whyUs ?? initialWhyUs;
+
   const list =
-    whyUs && whyUs.length > 0
-      ? whyUs
+    currentWhyUs && currentWhyUs.length > 0
+      ? currentWhyUs
           .slice()
           .sort((a, b) => a.order - b.order)
           .map((w) => ({

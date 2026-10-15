@@ -6,13 +6,19 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { SectionHeading } from "@/components/marketing/section-heading";
 import { TestimonialCard } from "@/components/marketing/cards";
 import { useTestimonialsQuery } from "@/queries/testimonials.queries";
+import type { TestimonialItem } from "@/types";
 
-export function Testimonials() {
+export function Testimonials({
+  initialTestimonials,
+}: {
+  initialTestimonials?: TestimonialItem[];
+}) {
   const { data: testimonials } = useTestimonialsQuery();
+  const currentTestimonials = testimonials ?? initialTestimonials;
 
   const list =
-    testimonials && testimonials.length > 0
-      ? testimonials
+    currentTestimonials && currentTestimonials.length > 0
+      ? currentTestimonials
           .slice()
           .sort((a, b) => a.order - b.order)
           .map((t) => ({

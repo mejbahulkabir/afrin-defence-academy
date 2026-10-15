@@ -5,9 +5,17 @@ import { useSiteSettingsQuery } from "@/queries/settings.queries";
 import { Phone, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
-export function MobileStickyCTA() {
+import type { SiteSettings } from "@/types";
+
+export function MobileStickyCTA({
+  initialSettings,
+}: {
+  initialSettings?: SiteSettings | null;
+} = {}) {
   const { data: settings } = useSiteSettingsQuery();
-  const phoneRaw = settings?.phoneRaw || settings?.phone || SITE.phoneRaw;
+  const currentSettings = settings ?? initialSettings;
+  const phoneRaw =
+    currentSettings?.phoneRaw || currentSettings?.phone || SITE.phoneRaw;
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 px-3 py-2.5 backdrop-blur-xl md:hidden">

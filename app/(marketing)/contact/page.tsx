@@ -1,11 +1,9 @@
-"use client";
-
-import { useMemo } from "react";
+import type { Metadata } from "next";
+import { Mail, MapPin, MessageSquare, Phone } from "lucide-react";
 import ContactForm from "@/components/marketing/sections/contact-form";
 import { PageHeader } from "@/components/marketing/sections/page-header";
 import { SITE } from "@/constants/site";
-import { Mail, MapPin, MessageSquare, Phone } from "lucide-react";
-import { useSiteSettingsQuery } from "@/queries/settings.queries";
+import { getSiteSettingsServer } from "@/lib/server-data";
 
 function getMapSrc(embedOrUrl?: string | null): string {
   if (!embedOrUrl) return SITE.mapsEmbed;
@@ -19,8 +17,22 @@ function getMapSrc(embedOrUrl?: string | null): string {
   return SITE.mapsEmbed;
 }
 
-export default function ContactPage() {
-  const { data: settings, isPending } = useSiteSettingsQuery();
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettingsServer();
+  return {
+    title: `Contact Admissions & Campus Visit | ${settings.name}`,
+    description: `Contact ${settings.name} for admission counseling, campus visit, hostel inquiry, or course details. Helpline: ${settings.phone}.`,
+    openGraph: {
+      title: `Contact Admissions | ${settings.name}`,
+      description: `Contact ${settings.name} for admission counseling, campus visit, or course details.`,
+    },
+  };
+}
+
+export const instant = false;
+
+export default async function ContactPage() {
+  const settings = await getSiteSettingsServer();
 
   const phone = settings?.phone || SITE.phone;
   const phoneRaw = settings?.phoneRaw || settings?.phone || SITE.phoneRaw;
@@ -29,40 +41,36 @@ export default function ContactPage() {
   const whatsapp = settings?.whatsapp || SITE.whatsapp;
   const mapsSrc = getMapSrc(settings?.mapsEmbed);
 
-  const contactItems = useMemo(() => {
-    const items = [
-      {
-        Icon: Phone,
-        title: "Call us",
-        value: phone,
-        href: `tel:${phoneRaw}`,
-      },
-      {
-        Icon: Mail,
-        title: "Email",
-        value: email,
-        href: `mailto:${email}`,
-      },
-    ];
+  const contactItems = [
+    {
+      Icon: Phone,
+      title: "Call us",
+      value: phone,
+      href: `tel:${phoneRaw}`,
+    },
+    {
+      Icon: Mail,
+      title: "Email",
+      value: email,
+      href: `mailto:${email}`,
+    },
+  ];
 
-    if (whatsapp) {
-      items.push({
-        Icon: MessageSquare,
-        title: "WhatsApp",
-        value: whatsapp,
-        href: `https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}`,
-      });
-    }
-
-    items.push({
-      Icon: MapPin,
-      title: "Visit",
-      value: address,
-      href: undefined as any,
+  if (whatsapp) {
+    contactItems.push({
+      Icon: MessageSquare,
+      title: "WhatsApp",
+      value: whatsapp,
+      href: `https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}`,
     });
+  }
 
-    return items;
-  }, [phone, phoneRaw, email, address, whatsapp]);
+  contactItems.push({
+    Icon: MapPin,
+    title: "Visit",
+    value: address,
+    href: undefined as any,
+  });
 
   return (
     <>
@@ -93,16 +101,12 @@ export default function ContactPage() {
                       rel={
                         title === "WhatsApp" ? "noopener noreferrer" : undefined
                       }
-                      suppressHydrationWarning
-                      className="mt-1 block truncate text-sm font-medium text-foreground transition-colors hover:text-accent"
+                      className="mt-1 block truncate text-sm font-medium text-foreground transition-colors hover:text-accent font-mono"
                     >
                       {value}
                     </a>
                   ) : (
-                    <p
-                      className="mt-1 text-sm font-medium text-foreground"
-                      suppressHydrationWarning
-                    >
+                    <p className="mt-1 text-sm font-medium text-foreground">
                       {value}
                     </p>
                   )}
@@ -115,7 +119,6 @@ export default function ContactPage() {
                 title="Afrin Defence Academy location"
                 src={mapsSrc}
                 loading="lazy"
-                suppressHydrationWarning
                 className="h-72 w-full border-0"
                 referrerPolicy="no-referrer-when-downgrade"
               />

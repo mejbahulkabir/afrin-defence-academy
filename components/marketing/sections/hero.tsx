@@ -22,25 +22,43 @@ const DEFAULTS = {
   secondaryHref: "/courses",
 };
 
-export function Hero() {
+import type { BannerItem, SiteSettings, StatItem } from "@/types";
+
+export function Hero({
+  initialBanners,
+  initialStats,
+  initialSettings,
+  settings,
+}: {
+  initialBanners?: BannerItem[];
+  initialStats?: StatItem[];
+  initialSettings?: SiteSettings | null;
+  settings?: SiteSettings | null;
+} = {}) {
   const { data: banners } = useBannersQuery("hero");
   const { data: stats } = useStatsQuery();
 
-  const activeBanner = banners?.find((b) => b.active) ?? banners?.[0];
+  const currentBanners = banners ?? initialBanners;
+  const currentStats = stats ?? initialStats;
+
+  const activeBanner =
+    currentBanners?.find((b) => b.active) ?? currentBanners?.[0];
 
   const image = activeBanner?.image || DEFAULTS.image;
   const eyebrow = activeBanner?.eyebrow || DEFAULTS.eyebrow;
   const title = activeBanner?.title || DEFAULTS.title;
-  const titleHighlight = activeBanner?.titleHighlight ?? DEFAULTS.titleHighlight;
+  const titleHighlight =
+    activeBanner?.titleHighlight ?? DEFAULTS.titleHighlight;
   const subtitle = activeBanner?.subtitle || DEFAULTS.subtitle;
   const ctaLabel = activeBanner?.ctaLabel || DEFAULTS.ctaLabel;
   const ctaHref = activeBanner?.ctaHref || DEFAULTS.ctaHref;
-  const secondaryLabel = activeBanner?.secondaryLabel ?? DEFAULTS.secondaryLabel;
+  const secondaryLabel =
+    activeBanner?.secondaryLabel ?? DEFAULTS.secondaryLabel;
   const secondaryHref = activeBanner?.secondaryHref ?? DEFAULTS.secondaryHref;
 
   const highlights =
-    stats && stats.length >= 3
-      ? stats
+    currentStats && currentStats.length >= 3
+      ? currentStats
           .slice()
           .sort((a, b) => a.order - b.order)
           .slice(0, 3)

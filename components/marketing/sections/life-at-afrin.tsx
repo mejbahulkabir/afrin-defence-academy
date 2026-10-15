@@ -3,6 +3,7 @@
 import { SectionHeading } from "../section-heading";
 import { GalleryGrid } from "./gallery-grid";
 import { useGalleryQuery } from "@/queries/gallery.queries";
+import type { GalleryImageItem } from "@/types";
 
 const FALLBACK = [
   {
@@ -27,12 +28,17 @@ const FALLBACK = [
   },
 ];
 
-export default function LifeAtAfrin() {
+export default function LifeAtAfrin({
+  initialGallery,
+}: {
+  initialGallery?: GalleryImageItem[];
+}) {
   const { data: galleryImages } = useGalleryQuery();
+  const currentGallery = galleryImages ?? initialGallery;
 
   const items =
-    galleryImages && galleryImages.length > 0
-      ? galleryImages
+    currentGallery && currentGallery.length > 0
+      ? currentGallery
           .filter((img) => img.active !== false)
           .sort((a, b) => a.order - b.order)
           .slice(0, 8)

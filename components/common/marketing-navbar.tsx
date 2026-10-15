@@ -11,15 +11,23 @@ import Link from "next/link";
 import { ThemeToggle } from "./theme-toggle";
 
 import { useSiteSettingsQuery } from "@/queries/settings.queries";
+import type { SiteSettings } from "@/types";
 
-export function MarketingNavbar() {
+export function MarketingNavbar({
+  initialSettings,
+}: {
+  initialSettings?: SiteSettings | null;
+} = {}) {
   const pathname = usePathname();
   const { data: settings } = useSiteSettingsQuery();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
-  const siteName = settings?.name || SITE.name;
-  const tagline = settings?.shortName ? `${settings.shortName} Defence Academy` : "Defence Forces Academy";
+  const currentSettings = settings ?? initialSettings;
+  const siteName = currentSettings?.name || SITE.name;
+  const tagline = currentSettings?.shortName
+    ? `${currentSettings.shortName} Defence Academy`
+    : "Defence Forces Academy";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);

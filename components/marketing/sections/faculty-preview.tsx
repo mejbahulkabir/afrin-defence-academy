@@ -6,14 +6,20 @@ import { SectionHeading } from "@/components/marketing/section-heading";
 import { FacultyCard } from "@/components/marketing/cards";
 import { stagger } from "@/components/animations/variants";
 import { useFacultyQuery } from "@/queries/faculty.queries";
+import type { FacultyItem } from "@/types";
 import Link from "next/link";
 
-export function FacultyPreview() {
+export function FacultyPreview({
+  initialFaculty,
+}: {
+  initialFaculty?: FacultyItem[];
+}) {
   const { data: faculty } = useFacultyQuery();
+  const currentFaculty = faculty ?? initialFaculty;
 
   const list =
-    faculty && faculty.length > 0
-      ? faculty
+    currentFaculty && currentFaculty.length > 0
+      ? currentFaculty
           .slice()
           .sort((a, b) => a.order - b.order)
           .slice(0, 3)

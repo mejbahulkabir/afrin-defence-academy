@@ -13,6 +13,7 @@ import {
 import { SectionHeading } from "@/components/marketing/section-heading";
 import { fadeUp, stagger } from "@/components/animations/variants";
 import { useExamsQuery } from "@/queries/exams.queries";
+import type { ExamItem } from "@/types";
 import Link from "next/link";
 
 const ICONS: Record<string, typeof Shield> = {
@@ -25,12 +26,17 @@ const ICONS: Record<string, typeof Shield> = {
   agniveer: Anchor,
 };
 
-export function ExamCategories() {
+export function ExamCategories({
+  initialExams,
+}: {
+  initialExams?: ExamItem[];
+}) {
   const { data: exams } = useExamsQuery();
+  const currentExams = exams ?? initialExams;
 
   const list =
-    exams && exams.length > 0
-      ? exams
+    currentExams && currentExams.length > 0
+      ? currentExams
           .slice()
           .sort((a, b) => a.order - b.order)
           .map((e) => ({

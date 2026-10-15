@@ -3,13 +3,19 @@
 import { SITE } from "@/constants/site";
 import { useSiteSettingsQuery } from "@/queries/settings.queries";
 import { Phone, Mail, Clock } from "lucide-react";
+import type { SiteSettings } from "@/types";
 
-export function AdmissionHelpline() {
+export function AdmissionHelpline({
+  initialSettings,
+}: {
+  initialSettings?: SiteSettings;
+}) {
   const { data: settings } = useSiteSettingsQuery();
+  const currentSettings = settings ?? initialSettings;
 
-  const phone = settings?.phone || SITE.phone;
-  const phoneRaw = settings?.phoneRaw || settings?.phone || SITE.phoneRaw;
-  const email = settings?.email || SITE.email;
+  const phone = currentSettings?.phone || SITE.phone;
+  const phoneRaw = currentSettings?.phoneRaw || currentSettings?.phone || SITE.phoneRaw;
+  const email = currentSettings?.email || SITE.email;
 
   return (
     <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">

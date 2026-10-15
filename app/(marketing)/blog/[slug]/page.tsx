@@ -1,14 +1,17 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Clock } from "lucide-react";
 
 import { CTASection } from "@/components/marketing/cta-section";
 import { formatTimestamp } from "@/lib/utils";
-import type { BlogPost } from "@/types";
-import { getBlogPostBySlug, getBlogPostsList } from "@/queries/blog.api";
-
-export const instant = false;
+import {
+  getBannersServer,
+  getBlogBySlugServer,
+  getBlogsServer,
+  getSiteSettingsServer,
+} from "@/lib/server-data";
 
 interface BlogPageProps {
   params: Promise<{
@@ -18,12 +21,50 @@ interface BlogPageProps {
 
 export async function generateStaticParams() {
   try {
-    const apiPosts = await getBlogPostsList();
-    const published = apiPosts.filter((p) => p.published);
-    return published.map((p) => ({ slug: p.slug }));
+    const posts = await getBlogsServer();
+    return posts.map((p) => ({ slug: p.slug }));
   } catch {
     return [];
   }
+}
+
+export async function generateMetadata({
+  params,
+}: BlogPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const [post, settings] = await Promise.all([
+    getBlogBySlugServer(slug),
+    getSiteSettingsServer(),
+  ]);
+
+  if (!post) {
+    return {
+      title: `Article Not Found | ${settings.name}`,
+    };
+  }
+
+  return {
+    title: `${post.title} | ${settings.name}`,
+    description:
+      post.excerpt ||
+      `${post.title} — Defence preparation guide by ${post.author || settings.name}`,
+    openGraph: {
+      title: `${post.title} | ${settings.name}`,
+      description: post.excerpt || "",
+      images: post.image ? [post.image] : undefined,
+      type: "article",
+      publishedTime: post.createdAt
+        ? new Date(post.createdAt).toISOString()
+        : undefined,
+      authors: post.author ? [post.author] : undefined,
+    },
+    twitter: {
+      card: post.image ? "summary_large_image" : "summary",
+      title: post.title,
+      description: post.excerpt || "",
+      images: post.image ? [post.image] : undefined,
+    },
+  };
 }
 
 function BlogDetailSkeleton() {
@@ -48,29 +89,9 @@ function BlogDetailSkeleton() {
 
 async function BlogDetailContent({ params }: BlogPageProps) {
   const { slug } = await params;
+  const post = await getBlogBySlugServer(slug);
 
-  let post: BlogPost | null = null;
-
-  // 1. Fetch via API
-  const apiPost = await getBlogPostBySlug(slug);
-
-  if (apiPost && apiPost.published) {
-    post = {
-      id: apiPost.id,
-      slug: apiPost.slug,
-      title: apiPost.title,
-      image: apiPost.image ?? undefined,
-      excerpt: apiPost.excerpt ?? "",
-      content: apiPost.content ?? "",
-      category: apiPost.category ?? "General",
-      author: apiPost.author ?? "Afrin Defence Academy",
-      date: apiPost.date ?? "",
-      readingTime: apiPost.readingTime ?? "4 min read",
-      published: apiPost.published,
-    };
-  }
-
-  if (!post) {
+  if (!post || !post.published) {
     notFound();
   }
 
@@ -83,18 +104,18 @@ async function BlogDetailContent({ params }: BlogPageProps) {
         <ArrowLeft className="h-4 w-4" /> All articles
       </Link>
       <div className="mt-6 text-xs font-semibold uppercase tracking-[0.18em] text-accent">
-        {post.category}
+        {post.category || "Strategy"}
       </div>
       <h1 className="font-display mt-2 text-4xl font-bold tracking-tight md:text-5xl">
         {post.title}
       </h1>
       <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-        <span>{post.author}</span>
+        <span>{post.author || "Faculty Desk"}</span>
         <span>·</span>
         <span>{formatTimestamp(post.date, true)}</span>
         <span>·</span>
         <span className="inline-flex items-center gap-1">
-          <Clock className="h-3.5 w-3.5" /> {post.readingTime}
+          <Clock className="h-3.5 w-3.5" /> {post.readingTime || "5 min read"}
         </span>
       </div>
       {post.image && (
@@ -107,7 +128,9 @@ async function BlogDetailContent({ params }: BlogPageProps) {
           />
         </div>
       )}
-      <p className="mt-8 text-xl font-medium text-foreground/90">{post.excerpt}</p>
+      <p className="mt-8 text-xl font-medium text-foreground/90">
+        {post.excerpt}
+      </p>
       <div className="prose prose-lg mt-6 max-w-none text-foreground/85 leading-relaxed">
         {(post.content || "").split("\n\n").map((para, i) => (
           <p key={i} className="mt-4">
@@ -119,13 +142,18 @@ async function BlogDetailContent({ params }: BlogPageProps) {
   );
 }
 
-export default function BlogDetailPage({ params }: BlogPageProps) {
+export default async function BlogDetailPage({ params }: BlogPageProps) {
+  const [settings, ctaBanners] = await Promise.all([
+    getSiteSettingsServer(),
+    getBannersServer("cta"),
+  ]);
+
   return (
     <>
       <Suspense fallback={<BlogDetailSkeleton />}>
         <BlogDetailContent params={params} />
       </Suspense>
-      <CTASection />
+      <CTASection initialSettings={settings} initialBanners={ctaBanners} />
     </>
   );
 }

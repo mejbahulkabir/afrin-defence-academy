@@ -4,13 +4,19 @@ import { stagger } from "@/components/animations/variants";
 import { useTestimonialsQuery } from "@/queries/testimonials.queries";
 import { motion } from "motion/react";
 import { TestimonialCard } from "../cards";
+import type { TestimonialItem } from "@/types";
 
-export default function SuccessStories() {
+export default function SuccessStories({
+  initialTestimonials,
+}: {
+  initialTestimonials?: TestimonialItem[];
+}) {
   const { data: testimonials } = useTestimonialsQuery();
+  const currentTestimonials = testimonials ?? initialTestimonials;
 
   const list =
-    testimonials && testimonials.length > 0
-      ? testimonials
+    currentTestimonials && currentTestimonials.length > 0
+      ? currentTestimonials
           .slice()
           .sort((a, b) => a.order - b.order)
           .map((t) => ({

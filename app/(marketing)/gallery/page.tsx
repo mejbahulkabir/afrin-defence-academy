@@ -1,10 +1,12 @@
-"use client";
-
-import { useMemo } from "react";
+import type { Metadata } from "next";
 import { CTASection } from "@/components/marketing/cta-section";
 import { GalleryGrid } from "@/components/marketing/sections/gallery-grid";
 import { PageHeader } from "@/components/marketing/sections/page-header";
-import { useGalleryQuery } from "@/queries/gallery.queries";
+import {
+  getBannersServer,
+  getGalleryServer,
+  getSiteSettingsServer,
+} from "@/lib/server-data";
 import type { GalleryItem } from "@/types";
 
 const FALLBACK: GalleryItem[] = [
@@ -50,25 +52,38 @@ const FALLBACK: GalleryItem[] = [
   },
 ];
 
-export default function GalleryPage() {
-  const { data: galleryData } = useGalleryQuery();
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettingsServer();
+  return {
+    title: `Campus & Training Gallery | ${settings.name}`,
+    description: `A visual glimpse inside ${settings.name}: drill fields, obstacle courses, strategy classrooms, physical endurance sessions, and passing-out parades.`,
+    openGraph: {
+      title: `Campus & Training Gallery | ${settings.name}`,
+      description: `Life on campus: drill fields, obstacle courses, and commissioning day at ${settings.name}.`,
+    },
+  };
+}
 
-  const items: GalleryItem[] = useMemo(() => {
-    if (galleryData && galleryData.length > 0) {
-      const activeItems = galleryData.filter((item) => item.active !== false);
-      if (activeItems.length > 0) {
-        return activeItems
+export const instant = false;
+
+export default async function GalleryPage() {
+  const [galleryData, settings, ctaBanners] = await Promise.all([
+    getGalleryServer(),
+    getSiteSettingsServer(),
+    getBannersServer("cta"),
+  ]);
+
+  const activeItems = galleryData.filter((item) => item.active !== false);
+  const items: GalleryItem[] =
+    activeItems.length > 0
+      ? activeItems
           .sort((a, b) => a.order - b.order)
           .map((img) => ({
             src: img.src,
             alt: img.alt || "Life at Afrin Defence Academy",
             caption: img.caption || "",
-          }));
-      }
-    }
-
-    return FALLBACK;
-  }, [galleryData]);
+          }))
+      : FALLBACK;
 
   return (
     <>
@@ -82,7 +97,7 @@ export default function GalleryPage() {
           <GalleryGrid items={items} />
         </div>
       </section>
-      <CTASection />
+      <CTASection initialSettings={settings} initialBanners={ctaBanners} />
     </>
   );
 }

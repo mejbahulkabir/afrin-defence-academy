@@ -4,13 +4,20 @@ import { motion } from "motion/react";
 import { AnimatedCounter } from "@/components/marketing/animated-counter";
 import { stagger } from "@/components/animations/variants";
 import { useStatsQuery } from "@/queries/stats.queries";
+import type { StatItem } from "@/types";
 
-export function StatsBand() {
+export function StatsBand({
+  initialStats,
+}: {
+  initialStats?: StatItem[];
+} = {}) {
   const { data: stats } = useStatsQuery();
 
+  const currentStats = stats ?? initialStats;
+
   const list =
-    stats && stats.length > 0
-      ? stats
+    currentStats && currentStats.length > 0
+      ? currentStats
           .slice()
           .sort((a, b) => a.order - b.order)
           .map((s) => ({

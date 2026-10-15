@@ -6,14 +6,19 @@ import { motion } from "motion/react";
 import { BlogCard } from "../cards";
 import { stagger } from "@/components/animations/variants";
 import { useBlogPostsQuery } from "@/queries/blog.queries";
-import type { BlogPost } from "@/types";
+import type { BlogPost, BlogPostItem } from "@/types";
 
-export default function AllBlogs() {
+export default function AllBlogs({
+  initialPosts,
+}: {
+  initialPosts?: BlogPostItem[];
+}) {
   const { data: apiPosts } = useBlogPostsQuery();
+  const currentPosts = apiPosts ?? initialPosts;
 
   const posts: BlogPost[] = useMemo(() => {
-    if (apiPosts && apiPosts.length > 0) {
-      const published = apiPosts.filter((p) => p.published);
+    if (currentPosts && currentPosts.length > 0) {
+      const published = currentPosts.filter((p) => p.published);
       if (published.length > 0) {
         return published.map((p) => ({
           id: p.id,
