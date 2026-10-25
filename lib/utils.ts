@@ -61,3 +61,36 @@ export async function copyTextToClipboard(text: string): Promise<boolean> {
     return false;
   }
 }
+
+export function generateInitials(name?: string | null): string {
+  if (!name || !name.trim()) return "";
+  // Strip parentheses content like (Retd.), (retd)
+  const cleaned = name.replace(/\([^)]*\)/g, "").trim();
+  const titles = new Set([
+    "col", "col.", "lt", "lt.", "gen", "gen.", "maj", "maj.",
+    "capt", "capt.", "brig", "brig.", "cdr", "cdr.", "dr", "dr.",
+    "prof", "prof.", "mr", "mr.", "mrs", "mrs.", "ms", "ms.",
+    "slt", "slt.", "wg", "cmde", "air", "sub", "adm", "hav", "nb", "sub.",
+  ]);
+  const words = cleaned
+    .split(/\s+/)
+    .map((w) => w.replace(/[^a-zA-Z]/g, ""))
+    .filter(Boolean);
+
+  const nonTitleWords = words.filter((w) => !titles.has(w.toLowerCase()));
+  const targetWords = nonTitleWords.length > 0 ? nonTitleWords : words;
+
+  if (targetWords.length === 0) return "";
+  if (targetWords.length === 1) {
+    return targetWords[0].slice(0, 2).toUpperCase();
+  }
+  return (targetWords[0][0] + targetWords[targetWords.length - 1][0]).toUpperCase();
+}
+
+export function getYouTubeId(url?: string | null): string | null {
+  if (!url || !url.trim()) return null;
+  const match = url.trim().match(
+    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/,
+  );
+  return match ? match[1] : null;
+}

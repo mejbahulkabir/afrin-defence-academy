@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import {
   Pencil,
   Plus,
@@ -35,6 +36,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { toApiError } from "@/lib/api-error";
+import { generateInitials } from "@/lib/utils";
 import type { FacultyItem } from "@/types/faculty";
 import {
   useDeleteFacultyMutation,
@@ -183,15 +185,25 @@ export default function FacultyPage() {
 
                     <TableCell>
                       <div className="flex items-center gap-2.5">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                          {item.initials ||
-                            item.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .slice(0, 2)
-                              .join("")
-                              .toUpperCase()}
-                        </div>
+                        {item.image ? (
+                          <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-border">
+                            <Image
+                              src={item.image}
+                              alt={item.name}
+                              fill
+                              sizes="36px"
+                              className="object-cover"
+                              unoptimized={
+                                item.image.startsWith("/storage") ||
+                                item.image.startsWith("http")
+                              }
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                            {generateInitials(item.name)}
+                          </div>
+                        )}
                         <div className="min-w-0 space-y-0.5">
                           <p className="font-medium text-foreground leading-tight">
                             {item.name}

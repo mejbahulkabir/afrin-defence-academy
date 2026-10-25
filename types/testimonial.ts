@@ -4,7 +4,8 @@ export interface Testimonial {
   achievement?: string | null;
   batch?: string | null;
   quote: string;
-  initials?: string | null;
+  youtubeUrl?: string | null;
+  image?: string | null;
   order?: number;
 }
 

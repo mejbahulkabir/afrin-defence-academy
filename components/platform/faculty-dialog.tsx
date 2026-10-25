@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { toApiError } from "@/lib/api-error";
+import { generateInitials } from "@/lib/utils";
 import type { FacultyItem } from "@/types/faculty";
 import {
   facultySchema,
@@ -28,6 +29,9 @@ import {
   useCreateFacultyMutation,
   useUpdateFacultyMutation,
 } from "@/queries/faculty.queries";
+import { PhotoUpload } from "./photo-upload";
+
+export { generateInitials };
 
 interface FacultyDialogProps {
   open: boolean;
@@ -68,20 +72,24 @@ export function FacultyDialog({
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<z.input<typeof facultySchema>, unknown, FacultyInput>({
     resolver: zodResolver(facultySchema),
     defaultValues: {
       name: "",
       role: "",
+      image: "",
       rank: "",
       experience: "",
       specialization: "",
-      initials: "",
       order: 0,
     },
     mode: "onTouched",
   });
+
+  const currentImage = watch("image");
 
   useEffect(() => {
     if (open) {
@@ -89,20 +97,20 @@ export function FacultyDialog({
         reset({
           name: itemToEdit.name,
           role: itemToEdit.role,
+          image: itemToEdit.image ?? "",
           rank: itemToEdit.rank ?? "",
           experience: itemToEdit.experience ?? "",
           specialization: itemToEdit.specialization ?? "",
-          initials: itemToEdit.initials ?? "",
           order: itemToEdit.order ?? 0,
         });
       } else {
         reset({
           name: "",
           role: "",
+          image: "",
           rank: "",
           experience: "",
           specialization: "",
-          initials: "",
           order: 0,
         });
       }
@@ -122,7 +130,7 @@ export function FacultyDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="w-full max-w-[calc(100vw-2rem)] sm:max-w-lg max-h-[90vh] overflow-y-auto overflow-x-hidden p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? "Edit Faculty Member" : "Add Faculty Member"}
@@ -134,103 +142,118 @@ export function FacultyDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-2">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Name" required error={errors.name?.message}>
-              <Input
-                {...register("name")}
-                placeholder="e.g. Col. Arvind Mehra (Retd.)"
-                aria-invalid={!!errors.name}
-                disabled={isPending}
-              />
-            </Field>
+        <form
+          noValidate
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-4 py-2 w-full min-w-0 overflow-x-hidden"
+        >
+          {/* Photo Upload Section */}
+          <PhotoUpload
+            label="Faculty Photo"
+            value={currentImage}
+            onChange={(url) => setValue("image", url, { shouldValidate: true })}
+            folder="faculty"
+            disabled={isPending}
+            error={errors.image?.message}
+            hint="PNG, JPG, or WebP portrait recommended (up to 15MB)"
+            placeholder="https://... or /storage/faculty/..."
+          />
 
-            <Field label="Role / Title" required error={errors.role?.message}>
-              <Input
-                {...register("role")}
-                placeholder="e.g. Director & SSB Mentor"
-                aria-invalid={!!errors.role}
-                disabled={isPending}
-              />
-            </Field>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field
-              label="Branch / Rank"
-              error={errors.rank?.message}
-              description="e.g. Indian Army, Indian Air Force"
-            >
-              <Input
-                {...register("rank")}
-                placeholder="Indian Army"
-                aria-invalid={!!errors.rank}
-                disabled={isPending}
-              />
-            </Field>
-
-            <Field
-              label="Experience"
-              error={errors.experience?.message}
-              description="e.g. 32+ yrs, 18 yrs"
-            >
-              <Input
-                {...register("experience")}
-                placeholder="32+ yrs"
-                aria-invalid={!!errors.experience}
-                disabled={isPending}
-              />
-            </Field>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="sm:col-span-2">
-              <Field
-                label="Specialization"
-                error={errors.specialization?.message}
-                description="e.g. SSB Interview · Officer Like Qualities"
-              >
+          <div className="grid gap-4 sm:grid-cols-2 w-full min-w-0">
+            <div className="min-w-0">
+              <Field label="Name" required error={errors.name?.message}>
                 <Input
-                  {...register("specialization")}
-                  placeholder="e.g. SSB Interview · GTO Tasks"
-                  aria-invalid={!!errors.specialization}
+                  {...register("name")}
+                  placeholder="e.g. Col. Arvind Mehra (Retd.)"
+                  aria-invalid={!!errors.name}
                   disabled={isPending}
+                  className="w-full min-w-0"
                 />
               </Field>
             </div>
 
-            <div>
-              <Field
-                label="Initials"
-                error={errors.initials?.message}
-                description="e.g. AM"
-              >
+            <div className="min-w-0">
+              <Field label="Role / Title" required error={errors.role?.message}>
                 <Input
-                  {...register("initials")}
-                  placeholder="AM"
-                  aria-invalid={!!errors.initials}
+                  {...register("role")}
+                  placeholder="e.g. Director & SSB Mentor"
+                  aria-invalid={!!errors.role}
                   disabled={isPending}
+                  className="w-full min-w-0"
                 />
               </Field>
             </div>
           </div>
 
-          <Field
-            label="Display order"
-            error={errors.order?.message}
-            description="Lower numbers display first on the website (e.g. 0, 1, 2)."
-          >
-            <Input
-              type="number"
-              {...register("order", { valueAsNumber: true })}
-              placeholder="0"
-              aria-invalid={!!errors.order}
-              disabled={isPending}
-            />
-          </Field>
+          <div className="grid gap-4 sm:grid-cols-2 w-full min-w-0">
+            <div className="min-w-0">
+              <Field
+                label="Branch / Rank"
+                error={errors.rank?.message}
+                description="e.g. Indian Army, Indian Air Force"
+              >
+                <Input
+                  {...register("rank")}
+                  placeholder="Indian Army"
+                  aria-invalid={!!errors.rank}
+                  disabled={isPending}
+                  className="w-full min-w-0"
+                />
+              </Field>
+            </div>
 
-          {/* Action buttons in same row across all screen sizes */}
-          <DialogFooter className="flex flex-row items-center justify-end gap-2 pt-3 sm:space-x-0">
+            <div className="min-w-0">
+              <Field
+                label="Experience"
+                error={errors.experience?.message}
+                description="e.g. 32+ yrs, 18 yrs"
+              >
+                <Input
+                  {...register("experience")}
+                  placeholder="32+ yrs"
+                  aria-invalid={!!errors.experience}
+                  disabled={isPending}
+                  className="w-full min-w-0"
+                />
+              </Field>
+            </div>
+          </div>
+
+          <div className="w-full min-w-0">
+            <Field
+              label="Specialization"
+              error={errors.specialization?.message}
+              description="e.g. SSB Interview · Officer Like Qualities"
+            >
+              <Input
+                {...register("specialization")}
+                placeholder="e.g. SSB Interview · GTO Tasks"
+                aria-invalid={!!errors.specialization}
+                disabled={isPending}
+                className="w-full min-w-0"
+              />
+            </Field>
+          </div>
+
+          <div className="w-full min-w-0">
+            <Field
+              label="Display order"
+              error={errors.order?.message}
+              description="Lower numbers display first on the website (e.g. 0, 1, 2)."
+            >
+              <Input
+                type="number"
+                {...register("order", { valueAsNumber: true })}
+                placeholder="0"
+                aria-invalid={!!errors.order}
+                disabled={isPending}
+                className="w-full min-w-0"
+              />
+            </Field>
+          </div>
+
+          {/* Action buttons */}
+          <DialogFooter className="flex flex-row items-center justify-end gap-2 pt-3 sm:space-x-0 w-full min-w-0">
             <Button
               type="button"
               variant="outline"
@@ -248,10 +271,10 @@ export function FacultyDialog({
               {isPending
                 ? isEditing
                   ? "Saving..."
-                  : "Creating..."
+                  : "Adding..."
                 : isEditing
                 ? "Save changes"
-                : "Add member"}
+                : "Add faculty member"}
             </Button>
           </DialogFooter>
         </form>
@@ -274,7 +297,7 @@ function Field({
   description?: string;
 }) {
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1.5 w-full min-w-0">
       <Label className={error ? "text-destructive" : ""}>
         {label}
         {required && <span className="text-destructive"> *</span>}
@@ -283,7 +306,7 @@ function Field({
       {children}
 
       {description && !error && (
-        <p className="text-xs text-muted-foreground">{description}</p>
+        <p className="text-xs text-muted-foreground truncate">{description}</p>
       )}
 
       {error && <p className="text-xs font-medium text-destructive">{error}</p>}

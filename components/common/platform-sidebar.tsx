@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Shield } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { SITE } from "@/constants/site";
@@ -10,6 +9,7 @@ import { ThemeToggle } from "./theme-toggle";
 import { PLATFORM_NAV } from "./platform-navigation";
 import { LogoutButton } from "../platform/logout-button";
 import { useSiteSettingsQuery } from "@/queries/settings.queries";
+import { Logo } from "./logo";
 
 export function PlatformSidebar() {
   const pathname = usePathname();
@@ -22,9 +22,7 @@ export function PlatformSidebar() {
       {/* Brand */}
       <div className="border-b border-border px-5 py-5">
         <Link href="/dashboard" className="flex items-center gap-3">
-          <div className="bg-gradient-ocean flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-elegant">
-            <Shield className="h-5 w-5 text-white" />
-          </div>
+          <Logo size="md" />
 
           <div className="min-w-0 leading-tight">
             <p

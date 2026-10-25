@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, Shield, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { NAV_LINKS, SITE } from "@/constants/site";
 import Link from "next/link";
 import { ThemeToggle } from "./theme-toggle";
+import { Logo } from "./logo";
 
 import { useSiteSettingsQuery } from "@/queries/settings.queries";
 import type { SiteSettings } from "@/types";
@@ -52,9 +53,7 @@ export function MarketingNavbar({
     >
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:h-20">
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="bg-gradient-ocean flex h-9 w-9 items-center justify-center rounded-lg shadow-elegant">
-            <Shield className="h-5 w-5 text-white" />
-          </div>
+          <Logo size="lg" priority />
           <div className="leading-tight">
             <div
               className="font-display text-base font-semibold tracking-tight text-foreground"

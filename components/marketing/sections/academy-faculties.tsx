@@ -24,15 +24,15 @@ export default function AcademyFaculties({
           id: String(f.id),
           name: f.name,
           role: f.role,
+          image: f.image ?? undefined,
           rank: f.rank?.trim() ? f.rank : undefined,
           experience: f.experience || "10+ yrs",
           specialization: f.specialization || "Defence Specialist",
-          initials: f.initials || "",
         }));
     }
 
     return [];
-  }, [facultyData]);
+  }, [currentFaculty]);
 
   return (
     <section className="py-20 md:py-24">

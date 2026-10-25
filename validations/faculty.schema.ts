@@ -13,10 +13,10 @@ export const facultySchema = z.object({
     .trim()
     .min(1, "Role is required")
     .max(255, "Role must be at most 255 characters"),
+  image: optionalString,
   rank: optionalString,
   experience: optionalString,
   specialization: optionalString,
-  initials: optionalString,
   order: z
     .number()
     .int("Order must be an integer")

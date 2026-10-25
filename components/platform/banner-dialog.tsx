@@ -1,16 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
-import {
-  Image as ImageIcon,
-  Loader2,
-  Upload,
-  X,
-  Link as LinkIcon,
-} from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -36,7 +29,7 @@ import {
   useCreateBannerMutation,
   useUpdateBannerMutation,
 } from "@/queries/banners.queries";
-import { useUploadMediaMutation } from "@/queries/upload.queries";
+import { PhotoUpload } from "./photo-upload";
 
 interface BannerDialogProps {
   open: boolean;
@@ -50,10 +43,6 @@ export function BannerDialog({
   itemToEdit,
 }: BannerDialogProps) {
   const isEditing = !!itemToEdit;
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [showManualUrl, setShowManualUrl] = useState(false);
-
   const createMutation = useCreateBannerMutation({
     onSuccess: () => {
       toast.success("Banner created successfully.");
@@ -74,16 +63,7 @@ export function BannerDialog({
     },
   });
 
-  const uploadMutation = useUploadMediaMutation({
-    onError: (error) => {
-      toast.error(toApiError(error).message || "Failed to upload banner image.");
-    },
-  });
-
-  const isPending =
-    createMutation.isPending ||
-    updateMutation.isPending ||
-    uploadMutation.isPending;
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
   const {
     register,
@@ -130,7 +110,6 @@ export function BannerDialog({
           active: itemToEdit.active,
           order: itemToEdit.order ?? 0,
         });
-        setShowManualUrl(false);
       } else {
         reset({
           slot: "hero",
@@ -146,40 +125,9 @@ export function BannerDialog({
           active: true,
           order: 0,
         });
-        setShowManualUrl(false);
       }
     }
   }, [open, itemToEdit, reset]);
-
-  const handleFileUpload = async (file: File) => {
-    try {
-      const response = await uploadMutation.mutateAsync({
-        file,
-        folder: "banners",
-      });
-      setValue("image", response.url, { shouldValidate: true });
-      toast.success("Banner image uploaded successfully.");
-    } catch {
-      // Handled in onError
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileUpload(file);
-    }
-    e.target.value = "";
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      handleFileUpload(file);
-    }
-  };
 
   const onSubmit = (values: BannerInput) => {
     if (isEditing && itemToEdit) {
@@ -228,147 +176,21 @@ export function BannerDialog({
             </select>
           </Field>
 
-          {/* Image Upload / Preview Area */}
-          <div className="space-y-2 w-full min-w-0">
-            <div className="flex items-center justify-between">
-              <Label className={errors.image ? "text-destructive" : ""}>
-                Banner Image <span className="text-destructive">*</span>
-              </Label>
-              <button
-                type="button"
-                onClick={() => setShowManualUrl((prev) => !prev)}
-                className="text-xs text-primary hover:underline inline-flex items-center gap-1"
-              >
-                <LinkIcon className="h-3 w-3" />
-                {showManualUrl ? "Upload File instead" : "Enter Image URL"}
-              </button>
-            </div>
+          {/* Banner Image */}
+          <PhotoUpload
+            label="Banner Image"
+            required
+            value={currentImage}
+            onChange={(url) => setValue("image", url, { shouldValidate: true })}
+            folder="banners"
+            variant="landscape"
+            disabled={isPending}
+            error={errors.image?.message}
+            hint="Wide banner image recommended (1920x1080 or 16:9, up to 15MB)"
+            placeholder="https://example.com/banner.jpg or /storage/banners/..."
+          />
 
-            {/* Manual URL input toggle */}
-            {showManualUrl && (
-              <Field
-                label="Direct Image URL"
-                error={errors.image?.message}
-                description="Enter a direct image URL or relative path (e.g. /storage/banners/hero.webp)"
-              >
-                <Input
-                  {...register("image")}
-                  placeholder="https://example.com/banner.jpg or /storage/banners/hero.webp"
-                  aria-invalid={!!errors.image}
-                  disabled={isPending}
-                />
-              </Field>
-            )}
 
-            {/* Hidden file input */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml,image/avif"
-              className="hidden"
-              onChange={handleFileChange}
-              disabled={isPending}
-            />
-
-            {/* Image Preview or Dropzone */}
-            {currentImage ? (
-              <div className="relative rounded-xl border bg-muted/30 p-3 overflow-hidden flex flex-col sm:flex-row items-center sm:items-start gap-3 w-full min-w-0 max-w-full">
-                <div className="relative h-24 w-36 shrink-0 overflow-hidden rounded-lg border bg-background">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={currentImage}
-                    alt="Banner preview"
-                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                  />
-                  {uploadMutation.isPending && (
-                    <div className="absolute inset-0 bg-background/70 backdrop-blur-xs flex items-center justify-center">
-                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex-1 min-w-0 w-full space-y-1.5 text-center sm:text-left overflow-hidden">
-                  <p
-                    className="text-xs font-mono text-muted-foreground truncate block max-w-full"
-                    title={currentImage}
-                  >
-                    {currentImage}
-                  </p>
-                  <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                    ✓ Image selected
-                  </p>
-                  <div className="flex flex-wrap items-center gap-2 pt-1 justify-center sm:justify-start">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isPending}
-                      className="h-7 text-xs gap-1"
-                    >
-                      <Upload className="h-3 w-3" />
-                      Replace Image
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setValue("image", "", { shouldValidate: true })}
-                      disabled={isPending}
-                      className="h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
-                    >
-                      <X className="h-3 w-3" />
-                      Remove
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setIsDragging(true);
-                }}
-                onDragLeave={() => setIsDragging(false)}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center cursor-pointer transition-colors w-full min-w-0 ${
-                  isDragging
-                    ? "border-primary bg-primary/5"
-                    : errors.image
-                    ? "border-destructive/60 bg-destructive/5 hover:border-destructive"
-                    : "border-border hover:border-primary/50 hover:bg-muted/30"
-                }`}
-              >
-                {uploadMutation.isPending ? (
-                  <div className="flex flex-col items-center space-y-2 py-4">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-xs font-medium text-foreground">
-                      Uploading to storage...
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary mb-3">
-                      <ImageIcon className="h-5 w-5" />
-                    </div>
-                    <p className="text-sm font-medium text-foreground">
-                      Click to upload banner image or drag & drop
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      High resolution JPG, PNG, WebP up to 15MB
-                    </p>
-                  </>
-                )}
-              </div>
-            )}
-
-            {errors.image && (
-              <p className="text-xs font-medium text-destructive">
-                {errors.image.message}
-              </p>
-            )}
-          </div>
 
           {/* Eyebrow & Title */}
           <div className="grid gap-4 sm:grid-cols-2 w-full min-w-0">

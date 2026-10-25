@@ -51,7 +51,8 @@ export async function POST(request: NextRequest) {
       achievement: values.achievement ?? null,
       batch: values.batch ?? null,
       quote: values.quote,
-      initials: values.initials ?? null,
+      youtubeUrl: values.youtubeUrl ?? null,
+      image: values.image ?? null,
       order: values.order ?? 0,
     });
 

@@ -49,10 +49,10 @@ export async function POST(request: NextRequest) {
     const [inserted] = await db.insert(faculty).values({
       name: values.name,
       role: values.role,
+      image: values.image ?? null,
       rank: values.rank ?? null,
       experience: values.experience ?? null,
       specialization: values.specialization ?? null,
-      initials: values.initials ?? null,
       order: values.order ?? 0,
     });
 

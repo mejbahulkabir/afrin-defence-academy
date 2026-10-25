@@ -1,12 +1,13 @@
 "use client";
 
 import React from "react";
-import { Mail, MapPin, Phone, Shield } from "lucide-react";
+import { Mail, MapPin, Phone } from "lucide-react";
 import { NAV_LINKS, SITE } from "@/constants/site";
 import Link from "next/link";
 import { CurrentYear } from "../marketing/current-year";
 import { useSiteSettingsQuery } from "@/queries/settings.queries";
 import { useCoursesQuery } from "@/queries/courses.queries";
+import { Logo } from "./logo";
 
 import type { CourseItem, SiteSettings } from "@/types";
 
@@ -98,9 +99,7 @@ export function MarketingFooter({
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div>
             <div className="flex items-center gap-2.5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 backdrop-blur">
-                <Shield className="h-5 w-5 text-white" />
-              </div>
+              <Logo size="md" />
               <div
                 className="font-display text-lg font-semibold tracking-tight"
                 suppressHydrationWarning

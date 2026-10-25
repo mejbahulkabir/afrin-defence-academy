@@ -3,9 +3,10 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Shield, LoaderCircle } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 
 import { SITE } from "@/constants/site";
+import { Logo } from "@/components/common/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -62,9 +63,7 @@ export default function LoginPage() {
         <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10 text-foreground">
             <div className="w-full max-w-sm">
                 <div className="mb-6 flex flex-col items-center text-center">
-                    <div className="bg-gradient-ocean mb-4 flex h-12 w-12 items-center justify-center rounded-xl shadow-elegant">
-                        <Shield className="h-6 w-6 text-white" />
-                    </div>
+                    <Logo size="lg" className="mb-4" priority />
 
                     <p
                         className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground"

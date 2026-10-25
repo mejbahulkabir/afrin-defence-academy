@@ -14,7 +14,8 @@ export const testimonialSchema = z.object({
     .string()
     .trim()
     .min(1, "Quote is required"),
-  initials: optionalString,
+  youtubeUrl: optionalString,
+  image: optionalString,
   order: z
     .number()
     .int("Order must be an integer")

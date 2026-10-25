@@ -1,16 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
-import {
-  Image as ImageIcon,
-  Loader2,
-  Upload,
-  X,
-  Link as LinkIcon,
-} from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -36,7 +29,7 @@ import {
   useCreateGalleryMutation,
   useUpdateGalleryMutation,
 } from "@/queries/gallery.queries";
-import { useUploadMediaMutation } from "@/queries/upload.queries";
+import { PhotoUpload } from "./photo-upload";
 
 interface GalleryDialogProps {
   open: boolean;
@@ -50,9 +43,6 @@ export function GalleryDialog({
   itemToEdit,
 }: GalleryDialogProps) {
   const isEditing = !!itemToEdit;
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [showManualUrl, setShowManualUrl] = useState(false);
 
   const createMutation = useCreateGalleryMutation({
     onSuccess: () => {
@@ -74,16 +64,7 @@ export function GalleryDialog({
     },
   });
 
-  const uploadMutation = useUploadMediaMutation({
-    onError: (error) => {
-      toast.error(toApiError(error).message || "Failed to upload image.");
-    },
-  });
-
-  const isPending =
-    createMutation.isPending ||
-    updateMutation.isPending ||
-    uploadMutation.isPending;
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
   const {
     register,
@@ -116,7 +97,6 @@ export function GalleryDialog({
           active: itemToEdit.active,
           order: itemToEdit.order ?? 0,
         });
-        setShowManualUrl(false);
       } else {
         reset({
           src: "",
@@ -125,40 +105,9 @@ export function GalleryDialog({
           active: true,
           order: 0,
         });
-        setShowManualUrl(false);
       }
     }
   }, [open, itemToEdit, reset]);
-
-  const handleFileUpload = async (file: File) => {
-    try {
-      const response = await uploadMutation.mutateAsync({
-        file,
-        folder: "gallery",
-      });
-      setValue("src", response.url, { shouldValidate: true });
-      toast.success("Image uploaded successfully.");
-    } catch {
-      // Error handled in uploadMutation.onError
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileUpload(file);
-    }
-    e.target.value = "";
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      handleFileUpload(file);
-    }
-  };
 
   const onSubmit = (values: GalleryInput) => {
     if (isEditing && itemToEdit) {
@@ -191,182 +140,54 @@ export function GalleryDialog({
           className="space-y-4 py-2 w-full min-w-0 max-w-full overflow-hidden"
         >
           {/* Image Upload / Preview Area */}
-          <div className="space-y-2 w-full min-w-0">
-            <div className="flex items-center justify-between">
-              <Label className={errors.src ? "text-destructive" : ""}>
-                Image Photo <span className="text-destructive">*</span>
-              </Label>
-              <button
-                type="button"
-                onClick={() => setShowManualUrl((prev) => !prev)}
-                className="text-xs text-primary hover:underline inline-flex items-center gap-1"
-              >
-                <LinkIcon className="h-3 w-3" />
-                {showManualUrl ? "Upload File instead" : "Enter Image URL"}
-              </button>
-            </div>
+          <PhotoUpload
+            label="Image Photo"
+            required
+            value={currentSrc}
+            onChange={(url) => setValue("src", url, { shouldValidate: true })}
+            folder="gallery"
+            variant="landscape"
+            disabled={isPending}
+            error={errors.src?.message}
+            hint="JPG, PNG, WebP, GIF, SVG up to 15MB"
+            placeholder="https://example.com/photo.jpg or /storage/gallery/photo.jpg"
+          />
 
-            {/* Manual URL input toggle */}
-            {showManualUrl && (
-              <Field
-                label="Direct Image URL"
-                error={errors.src?.message}
-                description="Enter a direct image URL or relative path (e.g. /storage/gallery/photo.jpg)"
-              >
-                <Input
-                  {...register("src")}
-                  placeholder="https://example.com/photo.jpg or /storage/gallery/photo.jpg"
-                  aria-invalid={!!errors.src}
-                  disabled={isPending}
-                />
-              </Field>
-            )}
-
-            {/* Hidden file input */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml,image/avif"
-              className="hidden"
-              onChange={handleFileChange}
-              disabled={isPending}
-            />
-
-            {/* Image Preview or Dropzone */}
-            {currentSrc ? (
-              <div className="relative rounded-xl border bg-muted/30 p-3 overflow-hidden flex flex-col sm:flex-row items-center sm:items-start gap-3 w-full min-w-0 max-w-full">
-                <div className="relative h-24 w-32 shrink-0 overflow-hidden rounded-lg border bg-background">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={currentSrc}
-                    alt="Gallery item preview"
-                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                  />
-                  {uploadMutation.isPending && (
-                    <div className="absolute inset-0 bg-background/70 backdrop-blur-xs flex items-center justify-center">
-                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex-1 min-w-0 w-full space-y-1.5 text-center sm:text-left overflow-hidden">
-                  <p
-                    className="text-xs font-mono text-muted-foreground truncate block max-w-full"
-                    title={currentSrc}
-                  >
-                    {currentSrc}
-                  </p>
-                  <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                    ✓ Image selected
-                  </p>
-                  <div className="flex flex-wrap items-center gap-2 pt-1 justify-center sm:justify-start">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isPending}
-                      className="h-7 text-xs gap-1"
-                    >
-                      <Upload className="h-3 w-3" />
-                      Replace Image
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setValue("src", "", { shouldValidate: true })}
-                      disabled={isPending}
-                      className="h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
-                    >
-                      <X className="h-3 w-3" />
-                      Remove
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setIsDragging(true);
-                }}
-                onDragLeave={() => setIsDragging(false)}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center cursor-pointer transition-colors w-full min-w-0 ${
-                  isDragging
-                    ? "border-primary bg-primary/5"
-                    : errors.src
-                    ? "border-destructive/60 bg-destructive/5 hover:border-destructive"
-                    : "border-border hover:border-primary/50 hover:bg-muted/30"
-                }`}
-              >
-                {uploadMutation.isPending ? (
-                  <div className="flex flex-col items-center space-y-2 py-4">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-xs font-medium text-foreground">
-                      Uploading to storage...
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary mb-3">
-                      <ImageIcon className="h-5 w-5" />
-                    </div>
-                    <p className="text-sm font-medium text-foreground">
-                      Click to upload or drag & drop image
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      JPG, PNG, WebP, GIF, SVG up to 15MB
-                    </p>
-                  </>
-                )}
-              </div>
-            )}
-
-            {errors.src && (
-              <p className="text-xs font-medium text-destructive">
-                {errors.src.message}
-              </p>
-            )}
-          </div>
-
-          {/* Caption */}
+          {/* Alt text field */}
           <Field
-            label="Caption"
-            error={errors.caption?.message}
-            description="Brief description shown under or over the image."
-          >
-            <Textarea
-              rows={2}
-              {...register("caption")}
-              placeholder="e.g. Cadets attending tactical physical endurance session on obstacle course"
-              aria-invalid={!!errors.caption}
-              disabled={isPending}
-            />
-          </Field>
-
-          {/* Alt text */}
-          <Field
-            label="Alt Text (SEO & Accessibility)"
+            label="Alternative Text (Alt Text)"
             error={errors.alt?.message}
-            description="Descriptive text for screen readers and SEO indexing."
+            description="Briefly describe what is in the photo for accessibility."
           >
             <Input
               {...register("alt")}
-              placeholder="e.g. Cadets navigating the high-wall obstacle course"
+              placeholder="e.g. Cadets during morning drill parade at academy ground"
               aria-invalid={!!errors.alt}
               disabled={isPending}
             />
           </Field>
 
-          {/* Order and Active status */}
-          <div className="grid gap-4 sm:grid-cols-2 items-start w-full min-w-0">
+          {/* Caption field */}
+          <Field
+            label="Caption / Description"
+            error={errors.caption?.message}
+            description="Optional short description shown in lightbox or tooltip."
+          >
+            <Textarea
+              rows={2}
+              {...register("caption")}
+              placeholder="e.g. Annual Passing Out Parade — Batch of 2025"
+              aria-invalid={!!errors.caption}
+              disabled={isPending}
+            />
+          </Field>
+
+          {/* Display Order & Active status */}
+          <div className="grid gap-4 sm:grid-cols-2 w-full min-w-0">
             <Field
-              label="Display order"
+              label="Display Order"
               error={errors.order?.message}
-              description="Lower numbers display first (e.g. 0, 1, 2)."
+              description="Lower numbers appear first."
             >
               <Input
                 type="number"
@@ -377,44 +198,38 @@ export function GalleryDialog({
               />
             </Field>
 
-            <div className="pt-2 sm:pt-7">
+            <div className="space-y-1.5 flex flex-col justify-center pt-2 sm:pt-4">
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   {...register("active")}
                   disabled={isPending}
-                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary shrink-0"
+                  className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
                 />
-                <span className="text-sm font-medium text-foreground">
-                  Active (Visible on website)
+                <span className="text-sm font-medium leading-none">
+                  Visible in public gallery
                 </span>
               </label>
-              <p className="text-xs text-muted-foreground mt-1">
-                Uncheck to hide this image without deleting it.
+              <p className="text-[11px] text-muted-foreground pl-6">
+                Uncheck to temporarily hide from gallery.
               </p>
             </div>
           </div>
 
-          {/* Action buttons in same row across all screen sizes */}
-          <DialogFooter className="flex flex-row items-center justify-end gap-2 pt-3 sm:space-x-0 w-full">
+          <DialogFooter className="flex flex-row items-center justify-end gap-2 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isPending}
-              className="flex-1 sm:flex-initial"
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={isPending}
-              className="flex-1 sm:flex-initial"
-            >
+            <Button type="submit" disabled={isPending}>
               {isPending
                 ? isEditing
-                  ? "Saving..."
-                  : "Adding..."
+                  ? "Saving changes..."
+                  : "Adding to gallery..."
                 : isEditing
                 ? "Save changes"
                 : "Add to gallery"}
