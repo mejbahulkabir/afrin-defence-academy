@@ -78,7 +78,7 @@ export function Hero({
           width={1920}
           height={1080}
           unoptimized={image.startsWith("/storage") || image.startsWith("http")}
-          fetchPriority="high"
+          priority
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-br from-[var(--navy-deep)]/95 via-[var(--navy-deep)]/85 to-[var(--navy)]/60" />

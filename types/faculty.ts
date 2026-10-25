@@ -2,10 +2,10 @@ export interface Faculty {
   id?: number | string;
   name: string;
   role: string;
+  image?: string | null;
   rank?: string | null;
   experience?: string | null;
   specialization?: string | null;
-  initials?: string | null;
   order?: number;
 }
 

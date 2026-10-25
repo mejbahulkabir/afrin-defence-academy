@@ -25,15 +25,8 @@ export default function SuccessStories({
             achievement: t.achievement || "Officer Candidate",
             batch: t.batch || "Batch 2025",
             quote: t.quote,
-            initials:
-              t.initials ||
-              t.name
-                .split(" ")
-                .filter(Boolean)
-                .map((n) => n[0])
-                .slice(0, 2)
-                .join("")
-                .toUpperCase(),
+            youtubeUrl: t.youtubeUrl ?? undefined,
+            image: t.image ?? undefined,
           }))
       : [];
 
@@ -46,8 +39,8 @@ export default function SuccessStories({
           animate="show"
           className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
         >
-          {list.map((t) => (
-            <TestimonialCard key={t.id} t={t} />
+          {list.map((t, idx) => (
+            <TestimonialCard key={t.id} t={t} priority={idx < 4} />
           ))}
         </motion.div>
       </div>

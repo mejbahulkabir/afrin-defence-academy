@@ -27,10 +27,10 @@ export function FacultyPreview({
             id: String(f.id),
             name: f.name,
             role: f.role,
+            image: f.image ?? undefined,
             rank: f.rank ?? undefined,
             experience: f.experience || "10+ Years",
             specialization: f.specialization || "Defence Preparation",
-            initials: f.initials || "",
           }))
       : [];
 

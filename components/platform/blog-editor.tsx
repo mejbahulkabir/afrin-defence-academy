@@ -39,7 +39,7 @@ import {
   useCreateBlogPostMutation,
   useUpdateBlogPostMutation,
 } from "@/queries/blog.queries";
-import { useUploadMediaMutation } from "@/queries/upload.queries";
+import { PhotoUpload } from "./photo-upload";
 
 export interface BlogEditorProps {
   id?: number;
@@ -85,9 +85,6 @@ function BlogEditorForm({
   isEditing: boolean;
 }) {
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [showManualUrl, setShowManualUrl] = useState(false);
 
   const createMutation = useCreateBlogPostMutation({
     onSuccess: () => {
@@ -109,16 +106,7 @@ function BlogEditorForm({
     },
   });
 
-  const uploadMutation = useUploadMediaMutation({
-    onError: (error) => {
-      toast.error(toApiError(error).message || "Failed to upload image.");
-    },
-  });
-
-  const isPending =
-    createMutation.isPending ||
-    updateMutation.isPending ||
-    uploadMutation.isPending;
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
   const todayFormatted = useMemo(() => {
     return new Date().toLocaleDateString("en-US", {
@@ -179,36 +167,6 @@ function BlogEditorForm({
     if (contentValue) {
       const minutes = Math.max(1, Math.ceil(wordCount / 200));
       setValue("readingTime", `${minutes} min read`);
-    }
-  };
-
-  const handleFileUpload = async (file: File) => {
-    try {
-      const response = await uploadMutation.mutateAsync({
-        file,
-        folder: "blog",
-      });
-      setValue("image", response.url, { shouldValidate: true });
-      toast.success("Cover image uploaded successfully.");
-    } catch {
-      // Handled in onError
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileUpload(file);
-    }
-    e.target.value = "";
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      handleFileUpload(file);
     }
   };
 
@@ -520,130 +478,23 @@ function BlogEditorForm({
           {/* Featured / Cover Image Card */}
           <Card>
             <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base flex items-center gap-1.5">
-                  <ImageIcon className="h-4 w-4 text-primary" />
-                  <span>Cover Image</span>
-                </CardTitle>
-                <button
-                  type="button"
-                  onClick={() => setShowManualUrl((prev) => !prev)}
-                  className="text-xs text-primary hover:underline inline-flex items-center gap-1"
-                >
-                  <LinkIcon className="h-3 w-3" />
-                  {showManualUrl ? "Upload File" : "Image URL"}
-                </button>
-              </div>
+              <CardTitle className="text-base flex items-center gap-1.5">
+                <ImageIcon className="h-4 w-4 text-primary" />
+                <span>Cover Image</span>
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {showManualUrl && (
-                <div className="space-y-1">
-                  <Label htmlFor="image-url" className="text-xs font-medium">
-                    Direct Image URL
-                  </Label>
-                  <Input
-                    id="image-url"
-                    {...register("image")}
-                    placeholder="https://... or /storage/blog/cover.jpg"
-                    disabled={isPending}
-                    className="h-9 text-xs"
-                  />
-                </div>
-              )}
-
-              {/* Hidden file input */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml,image/avif"
-                className="hidden"
-                onChange={handleFileChange}
+            <CardContent>
+              <PhotoUpload
+                label=""
+                value={currentImage}
+                onChange={(url) => setValue("image", url, { shouldValidate: true })}
+                folder="blog"
+                variant="landscape"
                 disabled={isPending}
+                error={errors.image?.message}
+                hint="PNG, JPG, WEBP up to 5MB (16:9 recommended)"
+                placeholder="https://... or /storage/blog/cover.jpg"
               />
-
-              {currentImage ? (
-                <div className="relative rounded-lg border bg-muted/20 p-2.5 overflow-hidden space-y-2">
-                  <div className="relative aspect-[16/9] w-full overflow-hidden rounded-md border bg-background">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={currentImage}
-                      alt="Blog cover preview"
-                      className="h-full w-full object-cover"
-                    />
-                    {uploadMutation.isPending && (
-                      <div className="absolute inset-0 bg-background/70 backdrop-blur-xs flex items-center justify-center">
-                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                      </div>
-                    )}
-                  </div>
-
-                  <p
-                    className="text-[11px] font-mono text-muted-foreground truncate block"
-                    title={currentImage}
-                  >
-                    {currentImage}
-                  </p>
-
-                  <div className="flex items-center gap-2 pt-0.5">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isPending}
-                      className="h-7 text-xs flex-1 gap-1"
-                    >
-                      <Upload className="h-3 w-3" />
-                      Replace
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setValue("image", "", { shouldValidate: true })}
-                      disabled={isPending}
-                      className="h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
-                    >
-                      <X className="h-3 w-3" />
-                      Remove
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setIsDragging(true);
-                  }}
-                  onDragLeave={() => setIsDragging(false)}
-                  onDrop={handleDrop}
-                  onClick={() => fileInputRef.current?.click()}
-                  className={`group relative flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-5 text-center transition-all ${
-                    isDragging
-                      ? "border-primary bg-primary/5 scale-[0.99]"
-                      : "border-border/80 hover:border-primary/60 hover:bg-muted/30"
-                  } ${uploadMutation.isPending ? "pointer-events-none opacity-60" : ""}`}
-                >
-                  {uploadMutation.isPending ? (
-                    <div className="flex flex-col items-center gap-2 py-2">
-                      <Loader2 className="h-7 w-7 animate-spin text-primary" />
-                      <p className="text-xs text-muted-foreground">Uploading image...</p>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-muted transition-colors group-hover:bg-primary/10">
-                        <Upload className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-primary" />
-                      </div>
-                      <p className="text-xs font-medium text-foreground">
-                        Click to upload or drag & drop
-                      </p>
-                      <p className="mt-1 text-[11px] text-muted-foreground">
-                        PNG, JPG, WEBP up to 5MB (16:9 recommended)
-                      </p>
-                    </>
-                  )}
-                </div>
-              )}
             </CardContent>
           </Card>
 

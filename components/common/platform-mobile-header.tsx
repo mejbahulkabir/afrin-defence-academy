@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Menu, X, Shield } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { SITE } from "@/constants/site";
@@ -11,6 +11,7 @@ import { ThemeToggle } from "./theme-toggle";
 import { PLATFORM_NAV } from "./platform-navigation";
 import { LogoutButton } from "../platform/logout-button";
 import { useSiteSettingsQuery } from "@/queries/settings.queries";
+import { Logo } from "./logo";
 
 export function PlatformMobileHeader() {
   const pathname = usePathname();
@@ -24,9 +25,7 @@ export function PlatformMobileHeader() {
       {/* Mobile header */}
       <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border bg-background/90 px-4 backdrop-blur-xl md:hidden">
         <Link href="/dashboard" className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-ocean shadow-elegant">
-            <Shield className="h-5 w-5 text-white" />
-          </span>
+          <Logo size="sm" />
 
           <span className="min-w-0">
             <span
@@ -83,9 +82,7 @@ export function PlatformMobileHeader() {
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-2.5"
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-ocean shadow-elegant">
-                  <Shield className="h-5 w-5 text-white" />
-                </span>
+                <Logo size="sm" />
 
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-semibold text-foreground">

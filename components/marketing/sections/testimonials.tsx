@@ -27,15 +27,8 @@ export function Testimonials({
             achievement: t.achievement || "Officer Candidate",
             batch: t.batch || "Batch 2025",
             quote: t.quote,
-            initials:
-              t.initials ||
-              t.name
-                .split(" ")
-                .filter(Boolean)
-                .map((n) => n[0])
-                .slice(0, 2)
-                .join("")
-                .toUpperCase(),
+            youtubeUrl: t.youtubeUrl ?? undefined,
+            image: t.image ?? undefined,
           }))
       : [];
 
@@ -82,7 +75,7 @@ export function Testimonials({
                       : ""
                   }
                 >
-                  <TestimonialCard t={t} />
+                  <TestimonialCard t={t} priority={idx < 2} />
                 </motion.div>
               ))}
             </AnimatePresence>

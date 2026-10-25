@@ -178,10 +178,10 @@ export const faculty = mysqlTable("faculty", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   role: varchar("role", { length: 255 }).notNull(),
+  image: text("image"),
   rank: varchar("rank", { length: 100 }),
   experience: varchar("experience", { length: 100 }),
   specialization: varchar("specialization", { length: 255 }),
-  initials: varchar("initials", { length: 20 }),
   order: int("order").default(0).notNull(),
   ...timestamps(),
 });
@@ -250,7 +250,8 @@ export const testimonials = mysqlTable("testimonials", {
   achievement: varchar("achievement", { length: 255 }),
   batch: varchar("batch", { length: 100 }),
   quote: text("quote").notNull(),
-  initials: varchar("initials", { length: 20 }),
+  youtubeUrl: text("youtube_url"),
+  image: text("image"),
   order: int("order").default(0).notNull(),
   ...timestamps(),
 });

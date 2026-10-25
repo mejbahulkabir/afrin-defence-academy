@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import {
   Pencil,
   Plus,
   Quote,
   RefreshCw,
   Trash2,
+  Video,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -35,6 +37,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { toApiError } from "@/lib/api-error";
+import { generateInitials } from "@/lib/utils";
 import type { TestimonialItem } from "@/types/testimonial";
 import {
   useDeleteTestimonialMutation,
@@ -183,19 +186,41 @@ export default function TestimonialsPage() {
 
                     <TableCell>
                       <div className="flex items-center gap-2.5">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                          {item.initials ||
-                            item.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .slice(0, 2)
-                              .join("")
-                              .toUpperCase()}
-                        </div>
-                        <div className="min-w-0">
+                        {item.image ? (
+                          <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full border border-border">
+                            <Image
+                              src={item.image}
+                              alt={item.name}
+                              fill
+                              sizes="32px"
+                              className="object-cover"
+                              unoptimized={
+                                item.image.startsWith("/storage") ||
+                                item.image.startsWith("http")
+                              }
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                            {generateInitials(item.name)}
+                          </div>
+                        )}
+                        <div className="min-w-0 space-y-0.5">
                           <p className="font-medium text-foreground leading-tight">
                             {item.name}
                           </p>
+                          {item.youtubeUrl && (
+                            <a
+                              href={item.youtubeUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[11px] font-medium text-red-600 hover:text-red-700 hover:underline"
+                              title="Watch YouTube video review"
+                            >
+                              <Video className="h-3 w-3" />
+                              Video Review
+                            </a>
+                          )}
                         </div>
                       </div>
                     </TableCell>
